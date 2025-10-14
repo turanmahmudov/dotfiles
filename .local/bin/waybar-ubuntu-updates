@@ -1,0 +1,15 @@
+#!/bin/sh
+# Waybar custom module: pending Ubuntu apt updates.
+# Refresh on demand with: pkill -SIGRTMIN+8 waybar
+set -eu
+
+set -- $(/usr/lib/update-notifier/apt-check 2>&1 | awk -F';' '{print $1, $2}')
+updates=${1:-0}
+security=${2:-0}
+
+if [ "$updates" -gt 0 ]; then
+    printf '{"text":"","alt":"updates","tooltip":"%d updates available (%d security)","class":"has-updates"}\n' \
+        "$updates" "$security"
+else
+    printf '{"text":"","alt":"updated","tooltip":"System up to date","class":"updated"}\n'
+fi

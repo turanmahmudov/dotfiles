@@ -1,0 +1,40 @@
+{
+    "group/connectivity": {
+        "orientation": "inherit",
+        "modules": [
+            "network",
+            "network#vpn",
+            "bluetooth"
+        ]
+    },
+    "group/audio": {
+        "orientation": "inherit",
+        "modules": [
+            "wireplumber#mic",
+            "wireplumber#speaker"
+        ]
+    },
+    "group/hardware": {
+        "orientation": "inherit",
+        "drawer": {
+            "transition-duration": 500,
+            "transition-left-to-right": false
+        },
+        "modules": [
+            "memory",
+            "cpu",
+            "temperature"
+        ]
+    },
+    "group/power": {
+        "orientation": "inherit",
+        "drawer": {
+            "transition-duration": 500,
+            "transition-left-to-right": false
+        },
+        "modules": [
+            "battery",
+            "power-profiles-daemon"
+        ]
+    }
+}

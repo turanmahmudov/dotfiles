@@ -1,0 +1,20 @@
+#!/bin/sh
+
+yadm alt
+
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+
+BOOTSTRAP_DIR="$HOME/.config/yadm/bootstrap.d"
+
+if [ -d "$BOOTSTRAP_DIR" ]; then
+    for script in "$BOOTSTRAP_DIR"/*.sh; do
+        if [ -x "$script" ]; then
+            echo "--- Running $(basename "$script") ---"
+            "$script"
+        fi
+    done
+fi
+
+if [ "$SHELL" != "$(command -v zsh)" ]; then
+    chsh -s "$(command -v zsh)"
+fi

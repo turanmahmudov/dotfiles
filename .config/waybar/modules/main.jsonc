@@ -1,0 +1,214 @@
+{
+    "keyboard-state": {
+        "numlock": true,
+        "capslock": true,
+        "format": "{name} {icon}",
+        "format-icons": {
+            "locked": "",
+            "unlocked": ""
+        }
+    },
+    "mpris": {
+        "format": "{player_icon}",
+        "format-paused": "{status_icon}",
+        "player-icons": {
+            "default": "󰝚",
+            "spotify": "󰓇",
+            "firefox": "󰗃"
+        },
+        "status-icons": {
+            "paused": "▶"
+        },
+        "on-click": "playerctl play-pause",
+        "on-scroll-up": "playerctl next",
+        "on-scroll-down": "playerctl previous",
+        "tooltip-format": "Playing: {title} - {artist}",
+        "tooltip-format-paused": "Paused: {title} - {artist}"
+    },
+    "idle_inhibitor": {
+        "start-activated": true,
+        "format": "{icon}",
+        "tooltip-format-activated": "Keep awake: on",
+        "tooltip-format-deactivated": "Keep awake: off",
+        "format-icons": {
+            "activated": "",
+            "deactivated": ""
+        }
+    },
+    "tray": {
+        "spacing": 10
+    },
+    "clock": {
+        "format": "{:%a, %b %d %R}",
+        "tooltip-format": "{calendar}",
+        "calendar": {
+            "mode-mon-col": 3,
+            "format": {
+                "months": "<span color='#D3D04F'><b>{}</b></span>",
+                "days": "<span color='#93B1A6'><b>{}</b></span>",
+                "weekdays": "<span color='#8EAC50'><b>{}</b></span>",
+                "today": "<span color='#8EAC50'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        }
+    },
+    "cpu": {
+        "format": " {usage}%",
+        "tooltip": false
+    },
+    "memory": {
+        "format": " {}%"
+    },
+    "temperature": {
+        "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon",
+        "input-filename": "temp1_input",
+        "format": "󰔐 {temperatureC}°C",
+        "critical-threshold": 80
+    },
+    "backlight": {
+        "device": "intel_backlight",
+        "format": "{icon}",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        "on-scroll-up": "swayosd-client --brightness raise",
+        "on-scroll-down": "swayosd-client --brightness lower",
+        "tooltip": false
+    },
+    "battery": {
+        "full-at": 95,
+        "states": {
+            "warning": 30,
+            "critical": 10
+        },
+        "format": "{icon} {capacity}%",
+        "format-plugged": "",
+        "format-charging": "󰂄 {capacity}%",
+        "format-icons": [
+            "󰂎",
+            "󰁺",
+            "󰁻",
+            "󰁼",
+            "󰁽",
+            "󰁾",
+            "󰁿",
+            "󰂀",
+            "󰂁",
+            "󰂂",
+            "󰁹"
+        ],
+        "tooltip-format": "{capacity}% - {timeTo}"
+    },
+    "power-profiles-daemon": {
+        "format": "{icon} ",
+        "tooltip-format": "Power profile: {profile}",
+        "tooltip": true,
+        "format-icons": {
+            "default": "",
+            "performance": "",
+            "balanced": "",
+            "power-saver": ""
+        }
+    },
+    "network": {
+        "format-wifi": "{icon}",
+        "format-icons": [
+            "󰤟",
+            "󰤢",
+            "󰤥",
+            "󰤨"
+        ],
+        "format-ethernet": "",
+        "format-linked": "󰄡",
+        "format-disconnected": "󰤮",
+        "format-disabled": "󰤭",
+        "tooltip-format": "{essid} ({signalStrength}%) - {gwaddr}",
+        "tooltip-format-ethernet": "{ifname} - {gwaddr}",
+        "tooltip-format-disconnected": "Disconnected",
+        "tooltip-format-disabled": "Wi-Fi disabled",
+        "on-click": "vicinae vicinae://launch/@dagimg-dot/store.vicinae.wifi-commander",
+        "on-click-right": "~/.local/bin/wifi-toggle"
+    },
+    "network#vpn": {
+        "interval": 5,
+        "interface": "tun0",
+        "format": "󰞀",
+        "format-disconnected": "󰞀",
+        "tooltip-format": "VPN Connected: {ipaddr}",
+        "tooltip-format-disconnected": "Disconnected",
+        "on-click": "~/.local/bin/gp-vpn-toggle"
+    },
+    "bluetooth": {
+        "format": "󰂯",
+        "format-off": "󰂲",
+        "format-disabled": "󰂲",
+        "format-connected": "󰂯 <sup>{num_connections}</sup>",
+        "tooltip-format": "{num_connections} connected",
+        "tooltip-format-off": "Bluetooth disabled",
+        "tooltip-format-disabled": "Bluetooth disabled",
+        "tooltip-format-connected": "{num_connections} connected\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}",
+        "on-click": "vicinae vicinae://launch/@Gelei/store.vicinae.bluetooth",
+        "on-click-right": "~/.local/bin/bluetooth-toggle"
+    },
+    "wireplumber#speaker": {
+        "format": "{icon}",
+        "format-muted": "",
+        "tooltip-format": "{node_name}: {volume}%",
+        "on-click": "pavucontrol",
+        "on-click-right": "swayosd-client --output-volume mute-toggle",
+        "on-scroll-up": "swayosd-client --output-volume raise",
+        "on-scroll-down": "swayosd-client --output-volume lower",
+        "scroll-step": 5,
+        "max-volume": 100,
+        "format-icons": {
+            "headphone": "󰋋",
+            "hands-free": "󰋋",
+            "headset": "󰋋",
+            "default": [
+                "",
+                ""
+            ]
+        }
+    },
+    "wireplumber#mic": {
+        "node-type": "Audio/Source",
+        "format": "",
+        "format-muted": "󰍭",
+        "tooltip-format": "{node_name}: {volume}%",
+        "on-click": "pavucontrol",
+        "on-click-right": "swayosd-client --input-volume mute-toggle",
+        "on-scroll-up": "swayosd-client --input-volume raise",
+        "on-scroll-down": "swayosd-client --input-volume lower",
+        "scroll-step": 5,
+        "max-volume": 100
+    },
+    "privacy": {
+        "icon-spacing": 4,
+        "icon-size": 13,
+        "modules": [
+            {
+                "type": "screenshare",
+                "tooltip": true,
+                "tooltip-icon-size": 24
+            },
+            {
+                "type": "audio-in",
+                "tooltip": true,
+                "tooltip-icon-size": 24
+            }
+        ]
+    }
+}

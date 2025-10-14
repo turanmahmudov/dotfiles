@@ -1,0 +1,149 @@
+#!/usr/bin/env -S PATH=${HOME}/.local/share/mise/shims:${PATH} ruby
+# frozen_string_literal: true
+
+require 'erb'
+require 'fileutils'
+require 'pathname'
+require 'yaml'
+
+ROOT       = Pathname.new(Dir.home).join('.config/themes')
+THEMES_DIR = ROOT.join('themes')
+TPL_DIR    = ROOT.join('templates')
+GEN_DIR    = ROOT.join('_generated')
+STATE_FILE = GEN_DIR.join('state')
+MODES      = %w[dark light].freeze
+DEFAULT_MODE = 'dark'
+
+def die(msg)
+  warn "✗ #{msg}"
+  exit 1
+end
+
+def list_families
+  THEMES_DIR.children.select(&:directory?).map { |p| p.basename.to_s }.sort
+end
+
+def family_modes(family)
+  dir = THEMES_DIR.join(family)
+  MODES.select { |m| dir.join(m, 'meta.yaml').file? }
+end
+
+def current_state
+  return [nil, nil] unless STATE_FILE.file?
+
+  STATE_FILE.read.strip.split('/', 2)
+end
+
+def resolve_mode(family, mode)
+  available = family_modes(family)
+  die "Family has no variants: #{family}" if available.empty?
+  return mode if available.include?(mode)
+
+  available.include?(DEFAULT_MODE) ? DEFAULT_MODE : available.first
+end
+
+def load_theme(family, mode)
+  meta = THEMES_DIR.join(family, mode, 'meta.yaml')
+  die "Theme not found: #{family}/#{mode}" unless meta.file?
+  YAML.safe_load_file(meta)
+end
+
+def render_templates(theme)
+  colors = theme.fetch('colors')
+  hex    = colors.transform_values { |v| v.to_s.sub(/\A#/, '').downcase }
+  locals = { theme: theme, c: colors, hex: hex }
+
+  TPL_DIR.glob('*.erb').each do |tpl|
+    erb = ERB.new(tpl.read, trim_mode: '-')
+    GEN_DIR.join(tpl.basename('.erb')).write(erb.result_with_hash(locals))
+  end
+end
+
+def link_wallpaper(family, mode, theme)
+  src = THEMES_DIR.join(family, mode, theme.fetch('wallpaper'))
+  die "Wallpaper missing: #{src}" unless src.file?
+  dst = GEN_DIR.join('wallpaper')
+  dst.delete if dst.exist? || dst.symlink?
+  File.symlink(src.to_s, dst.to_s)
+end
+
+def refresh_components(mode)
+  home = Dir.home
+  system("#{home}/.local/bin/set-gtk-theme", mode)
+  system("#{home}/.local/bin/hypr-run", 'waybar', err: File::NULL)
+  system('hyprctl', 'hyprpaper', 'wallpaper', ", #{GEN_DIR}/wallpaper")
+  system('tmux', 'source', "#{home}/.config/tmux/tmux.conf")
+  system('pkill', '-SIGUSR1', 'nvim')
+  system('pkill', '-SIGUSR1', 'kitty')
+  system('swaync-client', '--reload-config')
+  system('swaync-client', '-rs')
+  system('systemctl', '--user', 'restart', 'swayosd-server.service', err: File::NULL)
+end
+
+def apply(family, mode)
+  die "Unknown family: #{family}" unless list_families.include?(family)
+  mode = resolve_mode(family, mode)
+  theme = load_theme(family, mode)
+  FileUtils.mkdir_p(GEN_DIR)
+  render_templates(theme)
+  link_wallpaper(family, mode, theme)
+  STATE_FILE.write("#{family}/#{mode}\n")
+  refresh_components(mode)
+  Array(theme['scripts']).each { |cmd| system(cmd) }
+  puts "✓ Theme switched to: #{family}/#{mode}"
+end
+
+def print_info(family, mode)
+  theme = load_theme(family, mode)
+  puts "family:  #{family}"
+  puts "mode:    #{mode}"
+  puts "display: #{theme['display_name']}"
+  puts "colors:  #{theme.fetch('colors').size}"
+end
+
+cmd, *args = ARGV
+cur_family, cur_mode = current_state
+
+case cmd
+when 'get'
+  puts(cur_family ? "#{cur_family}/#{cur_mode}" : 'unknown')
+when 'family'
+  puts(cur_family || 'unknown')
+when 'mode'
+  puts(cur_mode || 'unknown')
+when 'list'
+  list_families.each { |name| puts name }
+when 'set'
+  die 'Missing family name' if args.empty?
+  family = args[0]
+  mode   = args[1] || cur_mode || DEFAULT_MODE
+  apply(family, mode)
+when 'set-mode'
+  mode = args[0] or die('Missing mode')
+  die "Invalid mode: #{mode}" unless MODES.include?(mode)
+  die 'No current family; run `set <family>` first' unless cur_family
+  apply(cur_family, mode)
+when 'toggle-mode'
+  die 'No current family; run `set <family>` first' unless cur_family
+  next_mode = cur_mode == 'light' ? 'dark' : 'light'
+  apply(cur_family, next_mode)
+when 'info'
+  family = args[0] || cur_family || die('No current theme; specify a family')
+  mode   = args[1] || (args[0] ? DEFAULT_MODE : cur_mode)
+  print_info(family, resolve_mode(family, mode))
+else
+  warn <<~USAGE
+    Usage: system-theme <command> [args]
+
+    Commands:
+      get                       Print current "family/mode"
+      family                    Print current family
+      mode                      Print current mode
+      list                      List available families
+      set <family> [mode]       Switch family (keeps current mode if omitted)
+      set-mode <dark|light>     Switch mode within current family
+      toggle-mode               Flip dark <-> light within current family
+      info [family] [mode]      Print theme metadata
+  USAGE
+  exit 1
+end

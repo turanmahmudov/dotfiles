@@ -1,0 +1,7 @@
+#!/bin/sh
+# @vicinae.schemaVersion 1
+# @vicinae.title Change System Theme
+# @vicinae.icon 🎨
+# @vicinae.mode silent
+
+~/.local/bin/system-theme-menu

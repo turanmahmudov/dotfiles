@@ -1,0 +1,40 @@
+@import "../themes/_generated/swayosd.css";
+
+window#osd {
+  border-radius: 12px;
+  border: none;
+  background: @background-color;
+}
+
+#container {
+  margin: 16px;
+}
+
+image,
+label {
+  color: @label;
+}
+
+progressbar:disabled,
+image:disabled {
+  opacity: 0.5;
+}
+
+progressbar {
+  min-height: 6px;
+  border-radius: 3px;
+  background: transparent;
+  border: none;
+}
+trough {
+  min-height: inherit;
+  border-radius: inherit;
+  border: none;
+  background: @label;
+}
+progress {
+  min-height: inherit;
+  border-radius: inherit;
+  border: none;
+  background: @progress;
+}

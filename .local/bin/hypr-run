@@ -1,0 +1,25 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+    echo "Usage: hypr-run <process_name> [sleep_time] [args...]"
+    echo "Example: hypr-run waybar"
+    exit 1
+fi
+
+process_name="$1"
+shift
+
+sleep_time=0.2
+if [ -n "$1" ]; then
+    sleep_time="$1"
+    shift
+fi
+
+pkill "$process_name"
+while pgrep -x "$process_name" > /dev/null; do
+    sleep 0.1
+done
+
+sleep "$sleep_time"
+
+hyprctl dispatch exec "$process_name $@"

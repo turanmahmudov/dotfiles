@@ -1,0 +1,18 @@
+#!/bin/sh
+
+## System theme menu — pick a theme family (keeps current mode)
+
+current_family=$(~/.local/bin/system-theme family)
+
+chosen=$(~/.local/bin/system-theme list | while read -r family; do
+    if [ "$family" = "$current_family" ]; then
+        printf "%s (current)\n" "$family"
+    else
+        printf "%s\n" "$family"
+    fi
+done | vicinae dmenu --placeholder "System Theme" --navigation-title "System Theme" --no-section)
+
+[ -z "$chosen" ] && exit 0
+
+family=$(printf "%s" "$chosen" | sed 's/ (current)$//')
+~/.local/bin/system-theme set "$family"

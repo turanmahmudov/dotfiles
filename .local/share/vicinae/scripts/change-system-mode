@@ -1,0 +1,7 @@
+#!/bin/sh
+# @vicinae.schemaVersion 1
+# @vicinae.title Change System Mode
+# @vicinae.icon 🌗
+# @vicinae.mode silent
+
+~/.local/bin/system-mode-menu

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+## System mode menu — pick light/dark (within current family)
+
+current_mode=$(~/.local/bin/system-theme mode)
+
+chosen=$(for mode in dark light; do
+    if [ "$mode" = "$current_mode" ]; then
+        printf "%s (current)\n" "$mode"
+    else
+        printf "%s\n" "$mode"
+    fi
+done | vicinae dmenu --placeholder "System Mode" --navigation-title "System Mode" --no-section)
+
+[ -z "$chosen" ] && exit 0
+
+mode=$(printf "%s" "$chosen" | sed 's/ (current)$//')
+~/.local/bin/system-theme set-mode "$mode"
