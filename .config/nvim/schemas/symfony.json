@@ -1,0 +1,119 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Symfony 5.4 Services and Parameters Configuration",
+    "type": "object",
+    "properties": {
+        "parameters": {
+            "type": "object",
+            "description": "Global application parameters",
+            "additionalProperties": {
+                "oneOf": [
+                    {"type": "string"},
+                    {"type": "number"},
+                    {"type": "boolean"},
+                    {"type": "array"},
+                    {"type": "object"}
+                ]
+            }
+        },
+        "services": {
+            "type": "object",
+            "description": "Root services configuration",
+            "properties": {
+                "_defaults": {
+                    "type": "object",
+                    "description": "Default service configuration",
+                    "properties": {
+                        "autowire": {
+                            "type": ["boolean", "null"],
+                            "description": "Automatically wire dependencies"
+                        },
+                        "autoconfigure": {
+                            "type": ["boolean", "null"],
+                            "description": "Automatically configure services"
+                        },
+                        "public": {
+                            "type": ["boolean", "null"],
+                            "description": "Service public accessibility"
+                        },
+                        "bind": {
+                            "type": ["object", "array"],
+                            "description": "Default parameter bindings"
+                        }
+                    }
+                },
+                "_instanceof": {
+                    "type": "object",
+                    "description": "Configuration for services matching specific types",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "tags": {
+                                "type": "array",
+                                "description": "Service tags"
+                            },
+                            "calls": {
+                                "type": "array",
+                                "description": "Method calls on service initialization"
+                            }
+                        }
+                    }
+                }
+            },
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string",
+                        "description": "Service class or alias"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "class": {
+                                "type": "string",
+                                "description": "Fully qualified class name"
+                            },
+                            "resource": {
+                                "type": ["string", "array"],
+                                "description": "Path or glob pattern to load services from"
+                            },
+                            "exclude": {
+                                "type": ["string", "array"],
+                                "description": "Paths or patterns to exclude from service loading"
+                            },
+                            "factory": {
+                                "type": ["string", "array"],
+                                "description": "Factory method for service creation"
+                            },
+                            "arguments": {
+                                "type": ["array", "object"],
+                                "description": "Constructor arguments"
+                            },
+                            "calls": {
+                                "type": "array",
+                                "description": "Additional method calls"
+                            },
+                            "tags": {
+                                "type": "array",
+                                "description": "Service tags"
+                            },
+                            "autowire": {
+                                "type": ["boolean", "null"],
+                                "description": "Autowire for this specific service"
+                            },
+                            "autoconfigure": {
+                                "type": ["boolean", "null"],
+                                "description": "Autoconfigure for this specific service"
+                            },
+                            "public": {
+                                "type": ["boolean", "null"],
+                                "description": "Public accessibility for this service"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                ]
+            }
+        }
+    }
+}

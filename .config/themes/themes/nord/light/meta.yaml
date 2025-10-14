@@ -1,0 +1,47 @@
+display_name: Nord (Snow Storm)
+wallpaper: wallpaper.jpg
+
+nvim_colorscheme: catppuccin-latte
+
+scripts:
+  - vicinae theme set nord-light
+
+colors:
+  bg: "#eceff4"
+  bg_alt: "#e5e9f0"
+  bg_alt2: "#d8dee9"
+  surface: "#d8dee9"
+
+  fg_dim: "#4c566a"
+  fg: "#2e3440"
+  fg_alt: "#3b4252"
+  fg_bright: "#2e3440"
+
+  accent: "#5e81ac"
+  accent_alt: "#81a1c1"
+  accent_fg: "#eceff4"
+  cursor: "#5e81ac"
+
+  black: "#2e3440"
+  red: "#bf616a"
+  green: "#a3be8c"
+  yellow: "#d08770"
+  blue: "#5e81ac"
+  magenta: "#b48ead"
+  cyan: "#88c0d0"
+  white: "#d8dee9"
+  bright_black: "#3b4252"
+  bright_red: "#bf616a"
+  bright_green: "#a3be8c"
+  bright_yellow: "#ebcb8b"
+  bright_blue: "#81a1c1"
+  bright_magenta: "#b48ead"
+  bright_cyan: "#8fbcbb"
+  bright_white: "#eceff4"
+
+  success: "#4f7a3e"
+  warning: "#b86d2e"
+  error: "#bf616a"
+  info: "#5e81ac"
+  urgent: "#bf616a"
+  active: "#4f7a3e"

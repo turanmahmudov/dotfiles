@@ -1,0 +1,45 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "system",
+  "model": "anthropic/claude-sonnet-4-6",
+  "autoupdate": true,
+  "provider": {
+    "anthropic": {
+      "options": {
+        "baseURL": "{env:ANTHROPIC_BASE_URL}/v1",
+        "apiKey": "{env:ANTHROPIC_API_KEY}"
+      },
+      "models": {
+        "claude-sonnet-4-6": {},
+        "claude-opus-4-6": {},
+        "claude-sonnet-4-5": {}
+      }
+    },
+    "openai": {
+      "options": {
+        "baseURL": "{env:OPENAI_BASE_URL}/v1",
+        "apiKey": "{env:OPENAI_API_KEY}"
+      }
+    }
+  },
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "atlassian": {
+      "type": "remote",
+      "url": "https://mcp.atlassian.com/v1/sse",
+      "enabled": true
+    },
+    "internal-code-rag": {
+      "type": "remote",
+      "url": "{env:INTERNAL_CODE_RAG_URL}",
+      "enabled": true
+    }
+  },
+  "experimental": {
+    "disable_paste_summary": true
+  }
+}

@@ -1,0 +1,473 @@
+#!/usr/bin/env python3
+"""Simple GlobalProtect VPN authenticator with external browser"""
+
+import argparse
+import os
+import re
+import socket
+import ssl
+import subprocess
+import sys
+import webbrowser
+import xml.etree.ElementTree as ET
+from binascii import a2b_base64
+from datetime import datetime
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from threading import Thread
+
+import requests
+import requests.adapters
+import urllib3
+
+PORT_FILE = "/tmp/gp-vpn-callback.port"
+PID_FILE = "/tmp/gp-vpn.pid"
+LOG_FILE = "/tmp/gp-vpn-callback.log"
+
+def get_privilege_cmd():
+    """Auto-detect privilege escalation method"""
+    if os.geteuid() == 0:
+        return []  # Already root
+    if sys.stdin.isatty():
+        return ['sudo']  # Terminal: use sudo
+    else:
+        return ['pkexec', '--user', 'root']  # GUI: use pkexec
+
+class TLSAdapter(requests.adapters.HTTPAdapter):
+    """Allow legacy SSL/TLS and skip certificate verification"""
+    def __init__(self):
+        super().__init__()
+    
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ctx.set_ciphers('DEFAULT:@SECLEVEL=1')
+        ctx.options |= 1 << 2  # OP_LEGACY_SERVER_CONNECT
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        self.poolmanager = urllib3.PoolManager(
+            num_pools=connections, maxsize=maxsize, block=block,
+            ssl_context=ctx, **pool_kwargs
+        )
+
+class RedirectHandler(BaseHTTPRequestHandler):
+    """Redirect to SAML URL or serve POST form"""
+    def log_message(self, format, *args):
+        """Suppress HTTP server logs"""
+        pass
+    
+    def do_GET(self):
+        """Handle GET request - redirect or serve HTML"""
+        saml_html = getattr(self.server, 'saml_html', '')
+        if saml_html:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(saml_html.encode())
+        else:
+            self.send_response(302)
+            self.send_header('Location', getattr(self.server, 'saml_url', ''))
+            self.end_headers()
+
+def get_saml_request(server, interface, allow_insecure):
+    """Fetch SAML request from VPN server"""
+    path = 'ssl-vpn' if interface == 'gateway' else 'global-protect'
+    endpoint = f'https://{server}/{path}/prelogin.esp'
+    
+    session = requests.Session()
+    session.headers['User-Agent'] = 'PAN GlobalProtect'
+    
+    if allow_insecure:
+        session.mount('https://', TLSAdapter())
+        verify = False
+    else:
+        verify = True
+    
+    try:
+        res = session.post(endpoint, verify=verify, timeout=10, data={
+            'tmp': 'tmp', 'clientVer': 4100, 'clientos': 'Linux',
+            'ipv6-support': 'yes', 'default-browser': '1', 'cas-support': 'yes'
+        })
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    xml = ET.fromstring(res.content)
+    method = xml.find('saml-auth-method')
+    request = xml.find('saml-request')
+    
+    if method is None or request is None or method.text is None or request.text is None:
+        print("Error: No SAML authentication", file=sys.stderr)
+        sys.exit(1)
+    
+    return method.text, a2b_base64(request.text).decode('utf-8')
+
+def parse_callback(data):
+    """Parse globalprotectcallback: URL"""
+    if not data.startswith('globalprotectcallback:'):
+        return None
+    
+    data = data[22:]
+    
+    # Try base64 decode (XML format)
+    try:
+        html = a2b_base64(data).decode('utf-8')
+        result = {}
+        for key in ['saml-username', 'prelogin-cookie', 'portal-userauthcookie']:
+            match = re.search(f'<{key}>(.*?)</{key}>', html)
+            if match:
+                result[key] = match.group(1).strip()
+        if result:
+            return result
+    except Exception:
+        pass
+    
+    # Try URL params format
+    try:
+        result = {}
+        for param in data.split('&'):
+            if '=' in param:
+                k, v = param.split('=', 1)
+                result[k] = v
+        if result:
+            return result
+    except Exception:
+        pass
+    
+    return None
+
+def wait_callback(timeout=300):
+    """Wait for callback via TCP socket"""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(('127.0.0.1', 0))
+    sock.listen(1)
+    
+    port = sock.getsockname()[1]
+    with open(PORT_FILE, 'w') as f:
+        f.write(str(port))
+    os.chmod(PORT_FILE, 0o600)
+    
+    sock.settimeout(timeout)
+    try:
+        conn, _ = sock.accept()
+        data = conn.recv(8192).decode('utf-8')
+        conn.close()
+        return parse_callback(data)
+    except socket.timeout:
+        return None
+    finally:
+        sock.close()
+        if os.path.exists(PORT_FILE):
+            os.remove(PORT_FILE)
+
+def authenticate(server, interface, allow_insecure):
+    """Perform SAML authentication and return credentials"""
+    # Get SAML request
+    method, request = get_saml_request(server, interface, allow_insecure)
+    
+    # Start HTTP server
+    httpd = HTTPServer(('127.0.0.1', 0), RedirectHandler)
+    if method == 'REDIRECT':
+        httpd.saml_url = request  # type: ignore
+        httpd.saml_html = ''  # type: ignore
+    elif method == 'POST':
+        httpd.saml_url = ''  # type: ignore
+        httpd.saml_html = request  # type: ignore
+    else:
+        print("Error: Unknown SAML method", file=sys.stderr)
+        sys.exit(1)
+    
+    Thread(target=httpd.handle_request, daemon=True).start()
+    
+    # Open browser
+    print("Opening browser...", file=sys.stderr)
+    webbrowser.open(f'http://127.0.0.1:{httpd.server_port}/')  # type: ignore
+    
+    # Wait for callback
+    print("Waiting for authentication...", file=sys.stderr)
+    result = wait_callback()
+    
+    if not result:
+        print("Error: No callback received", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("The URL handler may not be configured.", file=sys.stderr)
+        print("See README for setup instructions.", file=sys.stderr)
+        sys.exit(1)
+    
+    # Extract credentials
+    username = result.get('saml-username') or result.get('un', '')
+    cookie = result.get('prelogin-cookie') or result.get('portal-userauthcookie') or result.get('token', '')
+    
+    if not username or not cookie:
+        print(f"Error: Incomplete data: {list(result.keys())}", file=sys.stderr)
+        sys.exit(1)
+    
+    cookie_name = 'prelogin-cookie' if 'prelogin-cookie' in result else 'portal-userauthcookie'
+    usergroup = f'{interface}:{cookie_name}'
+    
+    return username, cookie, usergroup, server
+
+def get_server_pin(server, port=443):
+    """Fetch server SPKI sha256 pin (matches openconnect's pin-sha256 format)"""
+    cmd = (
+        f"openssl s_client -connect {server}:{port} -servername {server} "
+        f"-legacy_renegotiation </dev/null 2>/dev/null "
+        f"| openssl x509 -pubkey -noout "
+        f"| openssl pkey -pubin -outform der "
+        f"| openssl dgst -sha256 -binary "
+        f"| base64"
+    )
+    result = subprocess.run(['sh', '-c', cmd], capture_output=True, text=True)
+    pin = result.stdout.strip()
+    if not pin:
+        print("Error: failed to fetch server certificate pin", file=sys.stderr)
+        sys.exit(1)
+    return f"pin-sha256:{pin}"
+
+def cmd_auth(args):
+    """Auth command: authenticate and output variables"""
+    username, cookie, usergroup, server = authenticate(
+        args.server, args.interface, args.allow_insecure
+    )
+    
+    print(f"HOST={server}")
+    print(f"USER={username}")
+    print(f"COOKIE={cookie}")
+    print(f"USERGROUP={usergroup}")
+    print(f"OS=linux-64")
+
+def cmd_connect(args):
+    """Connect command: authenticate and connect with openconnect"""
+    # Check if openconnect is installed
+    try:
+        subprocess.run(['which', 'openconnect'], capture_output=True, check=True)
+    except subprocess.CalledProcessError:
+        print("Error: openconnect not installed", file=sys.stderr)
+        sys.exit(1)
+    
+    # Check if already connected
+    if os.path.exists(PID_FILE):
+        print("Error: VPN already connected. Disconnect first.", file=sys.stderr)
+        sys.exit(1)
+    
+    # Authenticate
+    username, cookie, usergroup, server = authenticate(
+        args.server, args.interface, args.allow_insecure
+    )
+    
+    print("Connecting to VPN...", file=sys.stderr)
+    
+    # Build openconnect command
+    cmd = [
+        'openconnect',
+        '--protocol=gp',
+        f'--user={username}',
+        '--os=linux-64',
+        f'--usergroup={usergroup}',
+        '--passwd-on-stdin',
+        server
+    ]
+    
+    if args.allow_insecure:
+        cmd.insert(1, '--allow-insecure-crypto')
+        pin = get_server_pin(server)
+        cmd.insert(1, f'--servercert={pin}')
+    
+    # Add privilege escalation
+    priv_cmd = get_privilege_cmd()
+    if priv_cmd:
+        cmd = priv_cmd + cmd
+    
+    # Execute openconnect
+    proc = None
+    try:
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True)
+        
+        # Write PID file
+        with open(PID_FILE, 'w') as f:
+            f.write(str(proc.pid))
+        
+        # Send cookie to stdin
+        if proc.stdin:
+            proc.stdin.write(cookie + '\n')
+            proc.stdin.flush()
+            proc.stdin.close()
+        
+        # Wait for process
+        proc.wait()
+        
+    except KeyboardInterrupt:
+        print("\nDisconnecting...", file=sys.stderr)
+        if proc:
+            proc.terminate()
+            proc.wait()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    finally:
+        # Clean up PID file
+        if os.path.exists(PID_FILE):
+            os.remove(PID_FILE)
+
+def cmd_status(args):
+    """Status command: check if VPN is connected via PID file"""
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE) as f:
+                pid = int(f.read().strip())
+            
+            # Check if process is actually running
+            try:
+                os.kill(pid, 0)  # Signal 0 doesn't kill, just checks if process exists
+                print(f"connected:{pid}")
+                sys.exit(0)
+            except ProcessLookupError:
+                # PID file exists but process is dead
+                os.remove(PID_FILE)
+                print("disconnected")
+                sys.exit(1)
+        except (ValueError, FileNotFoundError):
+            print("disconnected")
+            sys.exit(1)
+    else:
+        print("disconnected")
+        sys.exit(1)
+
+def cmd_disconnect(args):
+    """Disconnect command: kill openconnect process"""
+    priv_cmd = get_privilege_cmd()
+    
+    disconnected = False
+    
+    # Try PID file first
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE) as f:
+                pid = int(f.read().strip())
+            
+            result = subprocess.run(priv_cmd + ['kill', '-TERM', str(pid)], 
+                                   capture_output=True, text=True)
+            if result.returncode == 0:
+                print(f"Disconnected VPN (PID {pid})", file=sys.stderr)
+                disconnected = True
+            else:
+                print("Process not found", file=sys.stderr)
+        except (ValueError, FileNotFoundError) as e:
+            print(f"Error reading PID: {e}", file=sys.stderr)
+        finally:
+            os.remove(PID_FILE)
+    
+    # Fallback: pkill openconnect
+    if not disconnected:
+        try:
+            result = subprocess.run(priv_cmd + ['pkill', '-TERM', 'openconnect'], 
+                                   capture_output=True, text=True)
+            if result.returncode == 0:
+                print("Disconnected VPN (via pkill)", file=sys.stderr)
+            else:
+                print("No VPN connection found", file=sys.stderr)
+        except Exception as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
+def log_callback(message):
+    """Log callback handler message to file"""
+    try:
+        with open(LOG_FILE, 'a') as f:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            f.write(f"[{timestamp}] {message}\n")
+    except Exception:
+        pass  # Silently fail if logging doesn't work
+
+def cmd_handle(args):
+    """Handle command: process globalprotectcallback:// URL"""
+    if not args.url:
+        log_callback("ERROR: No callback URL provided")
+        sys.exit(1)
+    
+    callback_url = args.url
+    log_callback(f"Callback handler invoked with: {callback_url[:50]}...")
+    
+    # Check if port file exists
+    if not os.path.exists(PORT_FILE):
+        log_callback(f"ERROR: Port file not found at {PORT_FILE}")
+        sys.exit(1)
+    
+    # Read the port
+    try:
+        with open(PORT_FILE) as f:
+            port = int(f.read().strip())
+        log_callback(f"Sending to localhost:{port}")
+    except Exception as e:
+        log_callback(f"ERROR: Failed to read port file: {e}")
+        sys.exit(1)
+    
+    # Send the callback data to the waiting server
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(('127.0.0.1', port))
+        sock.send(callback_url.encode('utf-8'))
+        sock.close()
+        log_callback("Sent successfully")
+    except Exception as e:
+        log_callback(f"ERROR: Failed to send data: {e}")
+        sys.exit(1)
+    
+    log_callback("Done")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='GlobalProtect VPN authenticator',
+        epilog='Examples:\n'
+               '  %(prog)s auth SERVER\n'
+               '  %(prog)s connect --allow-insecure SERVER\n'
+               '  %(prog)s disconnect',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    subparsers = parser.add_subparsers(dest='command', help='Command to execute')
+    
+    # Auth command
+    auth_parser = subparsers.add_parser('auth', help='Authenticate and output credentials')
+    auth_parser.add_argument('server', help='VPN server address')
+    auth_parser.add_argument('-g', '--gateway', dest='interface', action='store_const',
+                            const='gateway', default='portal')
+    auth_parser.add_argument('--allow-insecure', dest='allow_insecure', action='store_true',
+                            help='Allow insecure SSL (legacy TLS + skip certificate verification)')
+    
+    # Connect command
+    connect_parser = subparsers.add_parser('connect', help='Authenticate and connect to VPN')
+    connect_parser.add_argument('server', help='VPN server address')
+    connect_parser.add_argument('-g', '--gateway', dest='interface', action='store_const',
+                               const='gateway', default='portal')
+    connect_parser.add_argument('--allow-insecure', dest='allow_insecure', action='store_true',
+                               help='Allow insecure SSL (legacy TLS + skip certificate verification)')
+    
+    # Disconnect command
+    disconnect_parser = subparsers.add_parser('disconnect', help='Disconnect VPN')
+    
+    # Status command
+    status_parser = subparsers.add_parser('status', help='Check VPN connection status')
+    
+    # Handle command (for browser callback)
+    handle_parser = subparsers.add_parser('handle', help='Handle globalprotectcallback:// URL')
+    handle_parser.add_argument('url', help='Callback URL from browser')
+    
+    args = parser.parse_args()
+    
+    # Handle commands
+    if args.command == 'auth':
+        cmd_auth(args)
+    elif args.command == 'connect':
+        cmd_connect(args)
+    elif args.command == 'disconnect':
+        cmd_disconnect(args)
+    elif args.command == 'status':
+        cmd_status(args)
+    elif args.command == 'handle':
+        cmd_handle(args)
+    elif args.command is None:
+        parser.print_help()
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

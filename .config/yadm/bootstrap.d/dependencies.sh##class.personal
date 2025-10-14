@@ -1,0 +1,41 @@
+#!/bin/sh
+echo "Installing Personal Dependencies"
+
+sudo apt-get update -qq
+
+# Deb packages
+sudo apt-get install -y \
+    build-essential \
+    zsh \
+    git \
+    curl \
+    pipx \
+    btop \
+    fastfetch \
+    tmux \
+    fzf ripgrep \
+    docker.io \
+    lazygit \
+    syncthing
+
+# Snap packages
+sudo snap install nvim --classic
+sudo snap install obsidian --classic
+sudo snap install spotify
+sudo snap install bitwarden
+
+# Binary packages
+if ! command -v lazydocker >/dev/null 2>&1; then
+    curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | DIR=/usr/local/bin sudo bash
+fi
+if ! command -v getnf >/dev/null 2>&1; then
+    curl -fsSL https://raw.githubusercontent.com/ronniedroid/getnf/master/install.sh | bash
+fi
+if ! command -v mise &> /dev/null; then
+    curl https://mise.run | sh
+fi
+mise use --global node@24
+mise use --global ruby@4
+mise use --global go@1.25
+mise use --global npm:opencode-ai
+mise reshim

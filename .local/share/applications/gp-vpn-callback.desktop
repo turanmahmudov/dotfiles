@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=GP VPN Callback Handler
+Comment=Handler for globalprotectcallback:// URLs
+Exec=/home/turan/.local/bin/gp-vpn handle %u
+Terminal=false
+NoDisplay=true
+MimeType=x-scheme-handler/globalprotectcallback;
