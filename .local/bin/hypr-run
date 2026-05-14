@@ -22,4 +22,4 @@ done
 
 sleep "$sleep_time"
 
-hyprctl dispatch exec "$process_name $@"
+hyprctl dispatch "hl.dsp.exec_cmd(\"$process_name $*\")"
