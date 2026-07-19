@@ -1,20 +1,37 @@
 #!/bin/sh
 echo "Installing Work Dependencies"
 
-# PPAs
+# Hyprland PPA
 if ! grep -q "cppiber/hyprland/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
     sudo add-apt-repository -y ppa:cppiber/hyprland
 fi
 
-# if ! grep -q "ondrej/php/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
-#     sudo add-apt-repository -y ppa:ondrej/php
-#     sudo sed -i 's/questing/noble/g' /etc/apt/sources.list.d/ondrej-ubuntu-php-*.sources
-# fi
+# Firefox PPA
+if ! grep -q "mozillateam/ppa/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+    sudo add-apt-repository -y ppa:mozillateam/ppa
+fi
+
+# Prefer firefox deb over snap
+sudo tee /etc/apt/preferences.d/mozilla-firefox >/dev/null <<'EOF'
+Package: firefox*
+Pin: release o=LP-PPA-mozillateam
+Pin-Priority: 1001
+EOF
+
+# Keep firefox auto-updating from the PPA
+echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:${distro_codename}";' \
+    | sudo tee /etc/apt/apt.conf.d/51unattended-upgrades-firefox >/dev/null
+
+# Drop firefox snap
+if snap list firefox >/dev/null 2>&1; then
+    sudo snap remove --purge firefox
+fi
 
 sudo apt-get update -qq
 
 # Deb packages
 sudo apt-get install -y \
+    firefox \
     build-essential \
     zsh \
     git \
@@ -41,15 +58,35 @@ sudo apt-get install -y \
     wl-clipboard cliphist \
     lazygit \
     syncthing \
-    openconnect \
-    php8.5 php8.5-bcmath php8.5-cli php8.5-common php8.5-curl php8.5-fpm php8.5-intl php8.5-mbstring php8.5-pgsql php8.5-readline php8.5-xdebug php8.5-xml php8.5-zip
+    openconnect
+
+# Slack
+if ! command -v slack >/dev/null 2>&1; then
+    slack_ver=$(curl -fsSL https://slack.com/downloads/instructions/linux \
+        | sed -nE 's#.*desktop-releases/linux/x64/([0-9.]+)/.*#\1#p' | head -1)
+    slack_deb=$(mktemp --suffix=.deb)
+    curl -fsSL -o "$slack_deb" \
+        "https://downloads.slack-edge.com/desktop-releases/linux/x64/${slack_ver}/slack-desktop-${slack_ver}-amd64.deb"
+    sudo apt-get install -y "$slack_deb"
+    rm -f "$slack_deb"
+fi
+
+# Obsidian
+if ! command -v obsidian >/dev/null 2>&1; then
+    obsidian_tag=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+        https://github.com/obsidianmd/obsidian-releases/releases/latest \
+        | sed -nE 's#.*/tag/v?([0-9.]+)$#\1#p')
+    obsidian_deb=$(mktemp --suffix=.deb)
+    curl -fsSL -o "$obsidian_deb" \
+        "https://github.com/obsidianmd/obsidian-releases/releases/download/v${obsidian_tag}/obsidian_${obsidian_tag}_amd64.deb"
+    sudo apt-get install -y "$obsidian_deb"
+    rm -f "$obsidian_deb"
+fi
 
 # Snap packages
 sudo snap install nvim --classic
 sudo snap install code --classic
-sudo snap install obsidian --classic
 sudo snap install spotify
-sudo snap install slack
 sudo snap install bitwarden
 sudo snap install bw
 sudo snap install aws-cli --classic
@@ -75,14 +112,10 @@ fi
 mise use --global node@24
 mise use --global ruby@4
 mise use --global go@1.25
+mise config set env._.php.prebuilt_static true
+mise config set env._.php.prebuilt_static_flavor bulk
+mise use --global php@8.5
 mise use --global npm:opencode-ai
 mise use --global npm:tree-sitter-cli
 mise reshim
 
-# Composer
-if ! command -v composer > /dev/null 2>&1; then
-    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-    php composer-setup.php
-    php -r "unlink('composer-setup.php');"
-    sudo mv composer.phar /usr/local/bin/composer
-fi
