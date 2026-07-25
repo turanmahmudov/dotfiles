@@ -70,14 +70,10 @@ end
 def refresh_components(mode)
   home = Dir.home
   system("#{home}/.local/bin/set-gtk-theme", mode)
-  system("#{home}/.local/bin/hypr-run", 'waybar', err: File::NULL)
   system('hyprctl', 'hyprpaper', 'wallpaper', ", #{GEN_DIR}/wallpaper")
   system('tmux', 'source', "#{home}/.config/tmux/tmux.conf")
   system('pkill', '-SIGUSR1', 'nvim')
   system('pkill', '-SIGUSR1', 'kitty')
-  system('swaync-client', '--reload-config')
-  system('swaync-client', '-rs')
-  system('systemctl', '--user', 'restart', 'swayosd-server.service', err: File::NULL)
 end
 
 def apply(family, mode)

@@ -2,7 +2,7 @@
 
 if [ -z "$1" ]; then
     echo "Usage: hypr-run <process_name> [sleep_time] [args...]"
-    echo "Example: hypr-run waybar"
+    echo "Example: hypr-run quickshell"
     exit 1
 fi
 

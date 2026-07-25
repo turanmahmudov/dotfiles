@@ -18,6 +18,14 @@ if [ ! -f "$NM_POWERSAVE_CONF" ]; then
     sudo systemctl restart NetworkManager
 fi
 
+# Load i2c-dev at boot (ddcutil needs it for external-monitor brightness over DDC/CI)
+I2C_CONF="/etc/modules-load.d/i2c-dev.conf"
+if [ ! -f "$I2C_CONF" ]; then
+    echo "Enabling i2c-dev module for ddcutil..."
+    echo 'i2c-dev' | sudo tee "$I2C_CONF" >/dev/null
+    sudo modprobe i2c-dev 2>/dev/null || true
+fi
+
 # Replace sudo-rs with legacy sudo
 sudo update-alternatives --set sudo /usr/bin/sudo.ws
 
@@ -27,7 +35,7 @@ update-desktop-database ~/.local/share/applications
 
 # systemd rejects loading units whose symlink target contains '##'
 SYSTEMD_USER_DIR="$HOME/.config/systemd/user"
-for unit in swayosd-server.service gnome-keyring-ssh.service; do
+for unit in gnome-keyring-ssh.service; do
     path="$SYSTEMD_USER_DIR/$unit"
     if [ -L "$path" ]; then
         src="$(readlink -f "$path")"
@@ -36,5 +44,4 @@ for unit in swayosd-server.service gnome-keyring-ssh.service; do
     fi
 done
 systemctl --user daemon-reload
-systemctl --user enable --now swayosd-server.service
 systemctl --user enable --now vicinae.service

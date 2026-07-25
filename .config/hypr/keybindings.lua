@@ -56,7 +56,8 @@ hl.bind(mod .. " + T", exec(terminal .. " -c tmux"))
 hl.bind(mod .. " + Space", exec(menu))
 hl.bind(mod .. " + D", exec("vicinae toggle"))
 hl.bind(mod .. " + E", exec(fileManager))
-hl.bind(mod .. " + SHIFT + C", exec("~/.local/bin/hypr-run waybar")) -- restart waybar
+hl.bind(mod .. " + SHIFT + V", exec("~/.local/bin/clipboard-history"))
+hl.bind(mod .. " + SHIFT + C", exec("~/.local/bin/hypr-run quickshell")) -- restart the shell
 
 ------------------------------
 ---- FOCUS / MOVE WINDOWS ----
@@ -123,13 +124,13 @@ hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 ---- MULTIMEDIA KEYS  ----
 --------------------------
 
--- Volume & brightness (locked + repeating, via swayosd for OSD)
-hl.bind("XF86AudioRaiseVolume", exec("swayosd-client --output-volume raise"), { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", exec("swayosd-client --output-volume lower"), { locked = true, repeating = true })
-hl.bind("XF86AudioMute", exec("swayosd-client --output-volume mute-toggle"), { locked = true, repeating = true })
-hl.bind("XF86AudioMicMute", exec("swayosd-client --input-volume mute-toggle"), { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessUp", exec("swayosd-client --brightness raise"), { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown", exec("swayosd-client --brightness lower"), { locked = true, repeating = true })
+-- Volume & brightness (locked + repeating); the shell renders the OSD
+hl.bind("XF86AudioRaiseVolume", exec("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", exec("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
+hl.bind("XF86AudioMute", exec("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, repeating = true })
+hl.bind("XF86AudioMicMute", exec("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp", exec("brightnessctl set 5%+"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", exec("brightnessctl set 5%-"), { locked = true, repeating = true })
 
 -- Media (requires playerctl)
 hl.bind("XF86AudioNext", exec("playerctl next"), { locked = true })
@@ -143,8 +144,8 @@ hl.bind("XF86AudioPrev", exec("playerctl previous"), { locked = true })
 
 hl.bind(mod .. " + R", hl.dsp.submap("resize"))
 hl.define_submap("resize", function()
-    hl.bind("right", hl.dsp.window.resize({ x = -20, y = 0 }), { repeating = true })
-    hl.bind("left", hl.dsp.window.resize({ x = 20, y = 0 }), { repeating = true })
+    hl.bind("right", hl.dsp.window.resize({ x = 20, y = 0 }), { repeating = true })
+    hl.bind("left", hl.dsp.window.resize({ x = -20, y = 0 }), { repeating = true })
     hl.bind("up", hl.dsp.window.resize({ x = 0, y = -20 }), { repeating = true })
     hl.bind("down", hl.dsp.window.resize({ x = 0, y = 20 }), { repeating = true })
     hl.bind("escape", hl.dsp.submap("reset"))
@@ -154,8 +155,8 @@ end)
 ---- SCREENSHOT  ----
 ---------------------
 
-hl.bind("Print", exec("~/.local/bin/screenshot-menu"))
-hl.bind("SHIFT + Print", exec("~/.local/bin/hyprshot -m region"))
+hl.bind("Print", exec("qs ipc call screenshot open region"))
+hl.bind("SHIFT + Print", exec("qs ipc call screenshot grabScreen"))
 
 --------------------------
 ---- WINDOW GROUPING  ----
@@ -170,5 +171,5 @@ hl.bind(mod .. " + Tab", hl.dsp.group.next()) -- Cycle forward through group mem
 
 hl.bind("ALT + Tab", hl.dsp.window.cycle_next()) -- focus another window
 hl.bind("CTRL + ALT + Delete", exec(terminal .. " -c btop"))
-hl.bind("SUPER + I", exec('XDG_CURRENT_DESKTOP="gnome" gnome-control-center'))
-hl.bind("SUPER + A", exec(terminal .. " -c opencode"))
+hl.bind(mod .. " + I", exec('XDG_CURRENT_DESKTOP="gnome" gnome-control-center'))
+hl.bind(mod .. " + A", exec(terminal .. " -c opencode"))

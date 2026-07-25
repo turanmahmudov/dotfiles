@@ -91,6 +91,8 @@ hl.window_rule({
 ---- LAYER RULES ----
 ---------------------
 
-hl.layer_rule({ match = { namespace = "swaync-control-center" }, blur = true, ignore_alpha = 0 })
-hl.layer_rule({ match = { namespace = "swaync-notification-window" }, blur = true, ignore_alpha = 0 })
+hl.layer_rule({ match = { namespace = "quickshell-popup" }, blur = true, ignore_alpha = 0, no_anim = true })
+hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true, ignore_alpha = 0 })
+hl.layer_rule({ match = { namespace = "quickshell-osd" }, blur = true, ignore_alpha = 0 })
+hl.layer_rule({ match = { namespace = "quickshell-polkit" }, blur = true, ignore_alpha = 0 })
 hl.layer_rule({ match = { namespace = "vicinae" }, blur = true, ignore_alpha = 0, no_anim = true })

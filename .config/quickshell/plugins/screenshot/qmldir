@@ -1,0 +1,6 @@
+singleton Screenshot 1.0 Screenshot.qml
+SelectionMask 1.0 SelectionMask.qml
+RegionSelector 1.0 RegionSelector.qml
+WindowSelector 1.0 WindowSelector.qml
+MonitorSelector 1.0 MonitorSelector.qml
+ControlBar 1.0 ControlBar.qml

@@ -27,6 +27,11 @@ if snap list firefox >/dev/null 2>&1; then
     sudo snap remove --purge firefox
 fi
 
+# Quickshell PPA
+if ! grep -q "avengemedia/danklinux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+    sudo add-apt-repository -y ppa:avengemedia/danklinux
+fi
+
 sudo apt-get update -qq
 
 # Deb packages
@@ -42,16 +47,17 @@ sudo apt-get install -y \
     btop \
     fastfetch \
     tmux \
-    waybar \
-    hyprland hyprpaper hypridle hyprlock hyprpolkitagent \
+    quickshell \
+    hyprland hyprpaper hypridle hyprlock hyprsunset \
     hyprland-qt-support0 \
     xdg-desktop-portal-hyprland \
     pipewire wireplumber \
-    sway-notification-center \
-    swayosd \
+    network-manager bluez \
     brightnessctl \
+    ddcutil \
     playerctl \
     fzf ripgrep \
+    jq \
     tree \
     docker.io docker-buildx docker-compose \
     slurp grim \

@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "bar": {
+    "position": "top",
+    "layout": {
+      "left": [
+        {
+          "id": "shell.workspaces",
+          "persistent": {
+            "eDP-1": [
+              1,
+              2
+            ],
+            "HDMI-A-1": [
+              3,
+              4,
+              5
+            ]
+          }
+        }
+      ],
+      "center": [
+        {
+          "id": "shell.clock",
+          "format": "ddd, MMM d  HH:mm"
+        }
+      ],
+      "right": [
+        {
+          "id": "shell.privacy"
+        },
+        {
+          "id": "shell.tray"
+        },
+        {
+          "id": "shell.updates"
+        },
+        {
+          "id": "shell.mpris"
+        },
+        {
+          "id": "shell.idle-inhibitor"
+        },
+        {
+          "id": "shell.language"
+        },
+        {
+          "id": "shell.hardware"
+        },
+        {
+          "id": "shell.theme"
+        },
+        {
+          "id": "shell.display"
+        },
+        {
+          "id": "shell.audio"
+        },
+        {
+          "group": [
+            {
+              "id": "shell.network"
+            },
+            {
+              "id": "shell.vpn"
+            },
+            {
+              "id": "shell.bluetooth"
+            }
+          ]
+        },
+        {
+          "id": "shell.power"
+        },
+        {
+          "id": "shell.notifications"
+        },
+        {
+          "id": "shell.power-button"
+        }
+      ]
+    }
+  }
+}

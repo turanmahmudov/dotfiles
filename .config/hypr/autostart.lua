@@ -14,14 +14,11 @@ hl.on("hyprland.start", function()
     -- Plugins
     hl.exec_cmd("hyprpm reload -n")
 
-    -- Polkit agent
-    hl.exec_cmd("/usr/libexec/hyprpolkitagent")
-
     -- Desktop components
     hl.exec_cmd("~/.local/bin/hypr-run hyprpaper") -- wallpaper
     hl.exec_cmd("~/.local/bin/hypr-run hypridle") -- idle management
-    hl.exec_cmd("~/.local/bin/hypr-run swaync") -- notifications
-    hl.exec_cmd("~/.local/bin/hypr-run waybar") -- top bar
+    hl.exec_cmd("~/.local/bin/hypr-run hyprsunset") -- night light daemon; hyprctl hyprsunset needs it
+    hl.exec_cmd("~/.local/bin/hypr-run quickshell") -- bar, notifications, OSD, panels, polkit agent
 
     -- Clipboard history
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
@@ -32,7 +29,4 @@ hl.on("hyprland.start", function()
 
     -- Launcher
     hl.exec_cmd("systemctl --user restart vicinae.service")
-
-    -- On-screen-display
-    hl.exec_cmd("systemctl --user restart swayosd-server.service")
 end)

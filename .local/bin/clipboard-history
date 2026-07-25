@@ -1,0 +1,5 @@
+#!/bin/sh
+# Pick an entry from the cliphist history and put it back on the clipboard.
+set -eu
+
+cliphist list | vicinae dmenu --no-section --placeholder "Clipboard history" | cliphist decode | wl-copy

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Print 1 if any /dev/video* device is open, 0 otherwise.
+# Pipewire cannot see apps that open v4l2 directly, so this stays a file check.
+for d in /dev/video*; do
+    [ -e "$d" ] || continue
+    if fuser "$d" >/dev/null 2>&1; then
+        echo 1
+        exit 0
+    fi
+done
+
+echo 0
