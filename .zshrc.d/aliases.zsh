@@ -36,4 +36,4 @@ alias tlist='tmux list-sessions'
 
 alias npm-ls='npm list -g --depth 0'
 
-alias claude='CLAUDE_CODE_DISABLE_KITTY_KEYBOARD=1 env -u ANTHROPIC_BASE_URL claude'
+alias claude='CLAUDE_CODE_DISABLE_KITTY_KEYBOARD=1 DISABLE_AUTOUPDATER=1 env -u ANTHROPIC_BASE_URL claude'

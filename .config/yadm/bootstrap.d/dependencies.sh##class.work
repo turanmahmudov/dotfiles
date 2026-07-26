@@ -56,13 +56,11 @@ sudo apt-get install -y \
     brightnessctl \
     ddcutil \
     playerctl \
-    fzf ripgrep \
     jq \
     tree \
     docker.io docker-buildx docker-compose \
     slurp grim \
     wl-clipboard cliphist \
-    lazygit \
     syncthing \
     openconnect
 
@@ -73,6 +71,7 @@ if ! command -v slack >/dev/null 2>&1; then
     slack_deb=$(mktemp --suffix=.deb)
     curl -fsSL -o "$slack_deb" \
         "https://downloads.slack-edge.com/desktop-releases/linux/x64/${slack_ver}/slack-desktop-${slack_ver}-amd64.deb"
+    chmod 644 "$slack_deb" # mktemp gives 0600; the _apt user must be able to read it
     sudo apt-get install -y "$slack_deb"
     rm -f "$slack_deb"
 fi
@@ -85,8 +84,22 @@ if ! command -v obsidian >/dev/null 2>&1; then
     obsidian_deb=$(mktemp --suffix=.deb)
     curl -fsSL -o "$obsidian_deb" \
         "https://github.com/obsidianmd/obsidian-releases/releases/download/v${obsidian_tag}/obsidian_${obsidian_tag}_amd64.deb"
+    chmod 644 "$obsidian_deb"
     sudo apt-get install -y "$obsidian_deb"
     rm -f "$obsidian_deb"
+fi
+
+# GitHub Desktop
+if ! command -v github-desktop >/dev/null 2>&1; then
+    ghd_ver=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+        https://github.com/shiftkey/desktop/releases/latest \
+        | sed -nE 's#.*/tag/release-(.+)$#\1#p')
+    ghd_deb=$(mktemp --suffix=.deb)
+    curl -fsSL -o "$ghd_deb" \
+        "https://github.com/shiftkey/desktop/releases/download/release-${ghd_ver}/GitHubDesktop-linux-amd64-${ghd_ver}.deb"
+    chmod 644 "$ghd_deb"
+    sudo apt-get install -y "$ghd_deb"
+    rm -f "$ghd_deb"
 fi
 
 # Snap packages
@@ -95,14 +108,8 @@ sudo snap install code --classic
 sudo snap install spotify
 sudo snap install bitwarden
 sudo snap install bw
-sudo snap install aws-cli --classic
-sudo snap install terraform --classic
-sudo snap install zig --beta --classic
 
 # Binary packages
-if ! command -v lazydocker >/dev/null 2>&1; then
-    curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
-fi
 if ! command -v getnf >/dev/null 2>&1; then
     curl -fsSL https://raw.githubusercontent.com/ronniedroid/getnf/master/install.sh | bash
 fi
@@ -112,16 +119,25 @@ fi
 if ! command -v mise > /dev/null 2>&1; then
     curl https://mise.run | sh
 fi
-if ! command -v claude > /dev/null 2>&1; then
-    curl -fsSL https://claude.ai/install.sh | bash
-fi
+
+# Mise
 mise use --global node@24
 mise use --global ruby@4
 mise use --global go@1.25
+mise plugin install php https://github.com/verzly/mise-php#latest
 mise config set env._.php.prebuilt_static true
 mise config set env._.php.prebuilt_static_flavor bulk
 mise use --global php@8.5
-mise use --global npm:opencode-ai
-mise use --global npm:tree-sitter-cli
+mise use --global claude
+mise use --global opencode
+mise use --global tree-sitter
+mise use --global lazygit
+mise use --global lazydocker
+mise use --global terraform
+mise use --global awscli
+mise use --global zig
+mise use --global fzf
+mise use --global ripgrep
+mise use --global "github:cli/cli[exe=gh]"
 mise reshim
 

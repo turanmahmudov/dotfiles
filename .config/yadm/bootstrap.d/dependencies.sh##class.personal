@@ -13,9 +13,7 @@ sudo apt-get install -y \
     btop \
     fastfetch \
     tmux \
-    fzf ripgrep \
     docker.io \
-    lazygit \
     syncthing
 
 # Snap packages
@@ -25,17 +23,20 @@ sudo snap install spotify
 sudo snap install bitwarden
 
 # Binary packages
-if ! command -v lazydocker >/dev/null 2>&1; then
-    curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | DIR=/usr/local/bin sudo bash
-fi
 if ! command -v getnf >/dev/null 2>&1; then
     curl -fsSL https://raw.githubusercontent.com/ronniedroid/getnf/master/install.sh | bash
 fi
 if ! command -v mise &> /dev/null; then
     curl https://mise.run | sh
 fi
+
+# Mise
 mise use --global node@24
 mise use --global ruby@4
 mise use --global go@1.25
-mise use --global npm:opencode-ai
+mise use --global opencode
+mise use --global lazygit
+mise use --global lazydocker
+mise use --global fzf
+mise use --global ripgrep
 mise reshim
