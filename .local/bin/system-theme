@@ -70,7 +70,6 @@ end
 def refresh_components(mode)
   home = Dir.home
   system("#{home}/.local/bin/set-gtk-theme", mode)
-  system('hyprctl', 'hyprpaper', 'wallpaper', ", #{GEN_DIR}/wallpaper")
   system('tmux', 'source', "#{home}/.config/tmux/tmux.conf")
   system('pkill', '-SIGUSR1', 'nvim')
   system('pkill', '-SIGUSR1', 'kitty')

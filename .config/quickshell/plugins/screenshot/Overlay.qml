@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.Commons
+import qs.Ui
 
 Item {
   id: overlayRoot
@@ -57,6 +58,7 @@ Item {
         visible: Screenshot.mode === "region" && freeze.hasContent && !Screenshot.capturing
         z: 1
         onRegionSelected: (x, y, w, h) => Screenshot.confirm(x, y, w, h, win.modelData.name)
+        onCancelled: Screenshot.cancel()
       }
 
       WindowSelector {

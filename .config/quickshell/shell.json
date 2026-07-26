@@ -27,6 +27,9 @@
       ],
       "right": [
         {
+          "id": "shell.recorder"
+        },
+        {
           "id": "shell.privacy"
         },
         {

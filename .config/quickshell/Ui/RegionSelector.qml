@@ -5,6 +5,7 @@ Item {
   id: root
 
   signal regionSelected(real x, real y, real width, real height)
+  signal cancelled()
 
   property real mouseX: 0
   property real mouseY: 0
@@ -69,7 +70,7 @@ Item {
     }
     onPressed: (m) => {
       if (m.button === Qt.RightButton) {
-        Screenshot.cancel()
+        root.cancelled()
         return
       }
       root.startPos = Qt.point(m.x, m.y)

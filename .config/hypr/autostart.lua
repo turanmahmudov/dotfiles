@@ -15,7 +15,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hyprpm reload -n")
 
     -- Desktop components
-    hl.exec_cmd("~/.local/bin/hypr-run hyprpaper") -- wallpaper
     hl.exec_cmd("~/.local/bin/hypr-run hypridle") -- idle management
     hl.exec_cmd("~/.local/bin/hypr-run hyprsunset") -- night light daemon; hyprctl hyprsunset needs it
     hl.exec_cmd("~/.local/bin/hypr-run quickshell") -- bar, notifications, OSD, panels, polkit agent

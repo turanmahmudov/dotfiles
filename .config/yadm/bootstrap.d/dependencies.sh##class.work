@@ -48,7 +48,7 @@ sudo apt-get install -y \
     fastfetch \
     tmux \
     quickshell \
-    hyprland hyprpaper hypridle hyprlock hyprsunset \
+    hyprland hypridle hyprlock hyprsunset \
     hyprland-qt-support0 \
     xdg-desktop-portal-hyprland \
     pipewire wireplumber \
@@ -59,7 +59,7 @@ sudo apt-get install -y \
     jq \
     tree \
     docker.io docker-buildx docker-compose \
-    slurp grim \
+    slurp grim wf-recorder \
     wl-clipboard cliphist \
     syncthing \
     openconnect

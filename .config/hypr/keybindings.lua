@@ -158,6 +158,10 @@ end)
 hl.bind("Print", exec("qs ipc call screenshot open region"))
 hl.bind("SHIFT + Print", exec("qs ipc call screenshot grabScreen"))
 
+-- Screen recording; CTRL + Print also stops an in-progress recording
+hl.bind("CTRL + Print", exec("qs ipc call recorder toggle"))
+hl.bind("CTRL + SHIFT + Print", exec("qs ipc call recorder startFocused"))
+
 --------------------------
 ---- WINDOW GROUPING  ----
 --------------------------
