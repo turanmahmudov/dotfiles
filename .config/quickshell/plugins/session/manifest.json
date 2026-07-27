@@ -1,0 +1,9 @@
+{
+  "name": "Session",
+  "widgets": {
+    "lock": { "surface": "cc", "file": "CcLock.qml" },
+    "suspend": { "surface": "cc", "file": "CcSuspend.qml" },
+    "logout": { "surface": "cc", "file": "CcLogout.qml" },
+    "power": { "surface": "cc", "file": "CcPower.qml" }
+  }
+}

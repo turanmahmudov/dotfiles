@@ -1,0 +1,11 @@
+{
+  "name": "Display",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" },
+    "brightness": { "surface": "cc", "file": "CcBrightness.qml" },
+    "nightLight": { "surface": "cc", "file": "CcNightLight.qml" },
+    "info": { "surface": "cc", "file": "CcRow.qml" }
+  },
+  "page": { "mode": "cc", "file": "Page.qml" },
+  "overlay": { "file": "Overlay.qml" }
+}

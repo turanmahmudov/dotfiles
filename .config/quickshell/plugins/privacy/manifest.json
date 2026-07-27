@@ -1,0 +1,6 @@
+{
+  "name": "Privacy",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" }
+  }
+}

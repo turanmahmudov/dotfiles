@@ -47,11 +47,23 @@ Item {
       controller.toggleAt(pluginId, root)
   }
 
+  // True while this widget's own page is the one showing in the panel.
+  readonly property bool panelOpen: !!(controller && pluginId.length > 0 && controller.page === pluginId)
+
   implicitWidth: shown ? (contentRow.implicitWidth + 2 * horizontalPadding) : 0
   implicitHeight: Style.barHeight - 10
   width: implicitWidth
   height: implicitHeight
   visible: shown
+
+  Rectangle {
+    anchors.fill: parent
+    radius: Style.radiusSmall
+    visible: root.interactive && (root.hovered || root.panelOpen)
+    color: Theme.alpha(Theme.fg, root.panelOpen ? 0.15 : 0.09)
+    border.width: 1
+    border.color: Theme.alpha(Theme.fg, root.panelOpen ? 0.2 : 0.12)
+  }
 
   Row {
     id: contentRow

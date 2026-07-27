@@ -1,0 +1,22 @@
+{
+  "name": "Clock",
+  "settings": [
+    {
+      "key": "format",
+      "type": "text",
+      "label": "Time format",
+      "hint": "Qt date format, for example ddd, MMM d  HH:mm",
+      "default": "ddd, MMM d  HH:mm"
+    }
+  ],
+  "widgets": {
+    "bar": {
+      "surface": "bar",
+      "file": "Widget.qml"
+    }
+  },
+  "page": {
+    "mode": "standalone",
+    "file": "Page.qml"
+  }
+}

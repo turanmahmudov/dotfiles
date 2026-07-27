@@ -1,0 +1,6 @@
+{
+  "name": "System tray",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" }
+  }
+}

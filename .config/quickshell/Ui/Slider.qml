@@ -5,6 +5,9 @@ Item {
   id: slider
   property real value: 0
   property real stepSize: 0.05
+  // A slider inside a scrolling form must not eat the wheel, or scrolling past it
+  // changes the value instead of moving the page.
+  property bool wheelEnabled: true
   signal moved(real value)
 
   implicitHeight: 18
@@ -53,6 +56,12 @@ Item {
       if (pressed)
         slider.setFromX(m.x)
     }
-    onWheel: (w) => slider.step(w.angleDelta.y > 0 ? 1 : -1)
+    onWheel: (w) => {
+      if (!slider.wheelEnabled) {
+        w.accepted = false
+        return
+      }
+      slider.step(w.angleDelta.y > 0 ? 1 : -1)
+    }
   }
 }

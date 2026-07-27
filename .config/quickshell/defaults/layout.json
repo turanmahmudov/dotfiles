@@ -1,0 +1,152 @@
+{
+  "bar": {
+    "left": [
+      {
+        "id": "shell.workspaces",
+        "persistent": {
+          "eDP-1": [
+            1,
+            2
+          ],
+          "HDMI-A-1": [
+            3,
+            4,
+            5
+          ]
+        }
+      }
+    ],
+    "center": [
+      {
+        "id": "shell.clock"
+      }
+    ],
+    "right": [
+      {
+        "id": "shell.recorder"
+      },
+      {
+        "id": "shell.privacy"
+      },
+      {
+        "id": "shell.mpris"
+      },
+      {
+        "id": "shell.tray"
+      },
+      {
+        "id": "shell.hardware"
+      },
+      {
+        "id": "shell.audio"
+      },
+      {
+        "id": "shell.network"
+      },
+      {
+        "id": "shell.vpn"
+      },
+      {
+        "id": "shell.bluetooth"
+      },
+      {
+        "id": "shell.power"
+      },
+      {
+        "id": "shell.notifications"
+      },
+      {
+        "id": "shell.control-center"
+      }
+    ]
+  },
+  "cc": [
+    {
+      "type": "grid",
+      "columns": 2,
+      "spacing": 8,
+      "items": [
+        {
+          "id": "shell.network:tile"
+        },
+        {
+          "id": "shell.bluetooth:tile"
+        }
+      ]
+    },
+    {
+      "type": "grid",
+      "columns": 3,
+      "compact": true,
+      "items": [
+        {
+          "id": "shell.vpn:tile"
+        },
+        {
+          "id": "shell.display:nightLight"
+        },
+        {
+          "id": "shell.idle-inhibitor:tile"
+        },
+        {
+          "id": "shell.screenshot:action"
+        },
+        {
+          "id": "shell.recorder:action"
+        },
+        {
+          "id": "shell.language:tile"
+        }
+      ]
+    },
+    {
+      "type": "stack",
+      "items": [
+        {
+          "id": "shell.audio:volume"
+        },
+        {
+          "id": "shell.display:brightness"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "items": [
+        {
+          "id": "shell.theme:info"
+        },
+        {
+          "id": "shell.power:info"
+        },
+        {
+          "id": "shell.display:info"
+        },
+        {
+          "id": "shell.updates:info"
+        },
+        {
+          "id": "shell.hardware:info"
+        }
+      ]
+    },
+    {
+      "type": "grid",
+      "columns": 4,
+      "items": [
+        {
+          "id": "shell.session:lock"
+        },
+        {
+          "id": "shell.session:suspend"
+        },
+        {
+          "id": "shell.session:logout"
+        },
+        {
+          "id": "shell.session:power"
+        }
+      ]
+    }
+  ]
+}

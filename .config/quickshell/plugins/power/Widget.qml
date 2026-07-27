@@ -6,6 +6,7 @@ BarItem {
   id: root
 
   readonly property bool critical: Battery.present && Battery.percent <= 10 && !Battery.charging
+  readonly property bool showPercent: !(settings && settings.showPercent === false)
 
   function describeBattery() {
     if (!Battery.present)
@@ -35,7 +36,7 @@ BarItem {
 
     Text {
       anchors.verticalCenter: parent.verticalCenter
-      visible: Battery.present
+      visible: Battery.present && root.showPercent
       text: Battery.percent + "%"
       color: root.critical ? Theme.urgent : (root.hovered ? Theme.fgDim : Theme.fg)
       font.family: Style.fontFamily

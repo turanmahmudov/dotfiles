@@ -1,0 +1,8 @@
+{
+  "name": "Keep awake",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" },
+    "tile": { "surface": "cc", "file": "CcTile.qml" }
+  },
+  "overlay": { "file": "Overlay.qml" }
+}

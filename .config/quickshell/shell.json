@@ -1,7 +1,6 @@
 {
   "version": 1,
   "bar": {
-    "position": "top",
     "layout": {
       "left": [
         {
@@ -21,8 +20,7 @@
       ],
       "center": [
         {
-          "id": "shell.clock",
-          "format": "ddd, MMM d  HH:mm"
+          "id": "shell.clock"
         }
       ],
       "right": [
@@ -33,44 +31,25 @@
           "id": "shell.privacy"
         },
         {
-          "id": "shell.tray"
-        },
-        {
-          "id": "shell.updates"
-        },
-        {
           "id": "shell.mpris"
         },
         {
-          "id": "shell.idle-inhibitor"
-        },
-        {
-          "id": "shell.language"
+          "id": "shell.tray"
         },
         {
           "id": "shell.hardware"
         },
         {
-          "id": "shell.theme"
-        },
-        {
-          "id": "shell.display"
-        },
-        {
           "id": "shell.audio"
         },
         {
-          "group": [
-            {
-              "id": "shell.network"
-            },
-            {
-              "id": "shell.vpn"
-            },
-            {
-              "id": "shell.bluetooth"
-            }
-          ]
+          "id": "shell.network"
+        },
+        {
+          "id": "shell.vpn"
+        },
+        {
+          "id": "shell.bluetooth"
         },
         {
           "id": "shell.power"
@@ -79,9 +58,100 @@
           "id": "shell.notifications"
         },
         {
-          "id": "shell.power-button"
+          "id": "shell.control-center"
         }
       ]
     }
+  },
+  "cc": {
+    "layout": [
+      {
+        "type": "grid",
+        "columns": 2,
+        "spacing": 8,
+        "items": [
+          {
+            "id": "shell.network:tile"
+          },
+          {
+            "id": "shell.bluetooth:tile"
+          }
+        ]
+      },
+      {
+        "type": "grid",
+        "columns": 3,
+        "compact": true,
+        "items": [
+          {
+            "id": "shell.vpn:tile"
+          },
+          {
+            "id": "shell.display:nightLight"
+          },
+          {
+            "id": "shell.idle-inhibitor:tile"
+          },
+          {
+            "id": "shell.screenshot:action"
+          },
+          {
+            "id": "shell.recorder:action"
+          },
+          {
+            "id": "shell.language:tile"
+          }
+        ]
+      },
+      {
+        "type": "stack",
+        "items": [
+          {
+            "id": "shell.audio:volume"
+          },
+          {
+            "id": "shell.display:brightness"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "id": "shell.theme:info"
+          },
+          {
+            "id": "shell.power:info"
+          },
+          {
+            "id": "shell.display:info"
+          },
+          {
+            "id": "shell.updates:info"
+          },
+          {
+            "id": "shell.hardware:info"
+          }
+        ]
+      },
+      {
+        "type": "grid",
+        "columns": 4,
+        "items": [
+          {
+            "id": "shell.session:lock"
+          },
+          {
+            "id": "shell.session:suspend"
+          },
+          {
+            "id": "shell.session:logout"
+          },
+          {
+            "id": "shell.session:power"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,0 +1,4 @@
+{
+  "name": "Wallpaper",
+  "overlay": { "file": "Overlay.qml" }
+}

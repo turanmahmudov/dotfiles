@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import qs.Commons
 import qs.Ui
 
@@ -8,7 +7,7 @@ BarItem {
 
   shown: Updates.hasUpdates
   tooltipText: Updates.tooltip.length > 0 ? Updates.tooltip : (Updates.count + " updates available")
-  onClicked: Quickshell.execDetached(["kitty", "sh", "-c", "sudo apt upgrade; printf '\\nPress Enter to close...'; read _"])
+  onClicked: openPanel()
 
   Row {
     spacing: 6

@@ -6,7 +6,8 @@ BarItem {
   id: root
 
   tooltipText: Vpn.connected ? "VPN: connected" : "VPN: off"
-  onClicked: Vpn.toggle()
+  onClicked: openPanel()
+  onRightClicked: Vpn.toggle()
 
   Icon {
     name: Vpn.connected ? "shield-check" : "shield"

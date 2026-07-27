@@ -1,0 +1,18 @@
+{
+  "name": "Workspaces",
+  "settings": [
+    {
+      "key": "showWindowIcons",
+      "type": "bool",
+      "label": "Show window icons",
+      "hint": "The workspace number alone stays when this is off",
+      "default": true
+    }
+  ],
+  "widgets": {
+    "bar": {
+      "surface": "bar",
+      "file": "Widget.qml"
+    }
+  }
+}

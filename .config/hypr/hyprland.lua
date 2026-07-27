@@ -55,7 +55,7 @@ hl.config({
         },
 
         -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
-        resize_on_border = false,
+        resize_on_border = true,
 
         -- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
         allow_tearing = false,
@@ -110,6 +110,10 @@ hl.config({
         fullscreen_on_one_column = true,
         column_width = 0.9,
         direction = "right",
+    },
+
+    binds = {
+        workspace_back_and_forth = true,
     },
 
     misc = {

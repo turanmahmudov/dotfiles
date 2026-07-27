@@ -11,6 +11,7 @@ BarItem {
   horizontalPadding: Style.paddingH
   implicitHeight: Style.barHeight - 6
 
+  readonly property bool showWindowIcons: !(settings && settings.showWindowIcons === false)
   readonly property string monName: screen ? screen.name : ""
   readonly property var monitor: Hypr.monitorFor(screen)
   readonly property string activeSpecialName: Hypr.activeSpecialName(monitor)
@@ -191,7 +192,7 @@ BarItem {
           }
 
           Repeater {
-            model: wsBtn.modelData.windows
+            model: root.showWindowIcons ? wsBtn.modelData.windows : []
 
             delegate: Item {
               id: winIcon

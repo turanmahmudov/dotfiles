@@ -17,12 +17,12 @@ ShellRoot {
   Variants {
     model: {
       PluginRegistry.revision
-      return PluginRegistry.pluginsOfKind("overlay")
+      return PluginRegistry.listOverlayUrls()
     }
 
     Loader {
       required property var modelData
-      source: PluginRegistry.entryPointUrl(modelData, "overlay")
+      source: modelData
     }
   }
 
@@ -30,6 +30,15 @@ ShellRoot {
     model: Quickshell.screens
 
     Bar {
+      controller: panelController
+    }
+  }
+
+  // The one panel surface. It exists only while a page is open.
+  Loader {
+    active: panelController.page.length > 0
+
+    sourceComponent: ShellPanel {
       controller: panelController
     }
   }

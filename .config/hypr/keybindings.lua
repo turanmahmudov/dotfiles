@@ -105,6 +105,10 @@ hl.bind(mod .. " + CTRL + left", hl.dsp.focus({ workspace = "-1" }))
 hl.bind(mod .. " + SHIFT + CTRL + right", hl.dsp.window.move({ workspace = "+1" }))
 hl.bind(mod .. " + SHIFT + CTRL + left", hl.dsp.window.move({ workspace = "-1" }))
 
+-- Jump back to the last workspace; repeats bounce between the two when
+-- binds:allow_workspace_cycles is on.
+hl.bind(mod .. " + grave", hl.dsp.focus({ workspace = "previous" }))
+
 -- Special workspace (scratchpad)
 hl.bind(mod .. " + minus", hl.dsp.workspace.toggle_special("magic"))
 hl.bind(mod .. " + SHIFT + minus", hl.dsp.window.move({ workspace = "special:magic" }))

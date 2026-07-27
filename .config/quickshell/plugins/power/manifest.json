@@ -1,0 +1,26 @@
+{
+  "name": "Battery",
+  "settings": [
+    {
+      "key": "showPercent",
+      "type": "bool",
+      "label": "Show the percentage",
+      "hint": "The icon alone stays when this is off",
+      "default": true
+    }
+  ],
+  "widgets": {
+    "bar": {
+      "surface": "bar",
+      "file": "Widget.qml"
+    },
+    "info": {
+      "surface": "cc",
+      "file": "CcRow.qml"
+    }
+  },
+  "page": {
+    "mode": "cc",
+    "file": "Page.qml"
+  }
+}

@@ -32,6 +32,14 @@ QtObject {
     }
   }
 
+  // hypridle pauses its timers for a logind idle inhibitor; the Wayland
+  // protocol inhibitor only counts while an inhibiting surface is alive.
+  property Process inhibitProc: Process {
+    running: root.active
+    command: ["systemd-inhibit", "--what=idle", "--who=Quickshell",
+              "--why=Keep awake", "--mode=block", "sleep", "infinity"]
+  }
+
   Component.onCompleted: {
     if (StateStore.ready)
       root.active = StateStore.get("keepAwake.active", root.active)

@@ -1,0 +1,8 @@
+{
+  "name": "Bluetooth",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" },
+    "tile": { "surface": "cc", "file": "CcTile.qml" }
+  },
+  "page": { "mode": "cc", "file": "Page.qml" }
+}

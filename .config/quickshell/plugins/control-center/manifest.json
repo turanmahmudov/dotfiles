@@ -1,0 +1,7 @@
+{
+  "name": "Control Center",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" }
+  },
+  "page": { "mode": "cc", "file": "Page.qml" }
+}

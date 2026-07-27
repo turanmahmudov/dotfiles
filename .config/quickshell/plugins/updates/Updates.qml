@@ -16,8 +16,12 @@ QtObject {
   }
 
   function parse(out) {
+    // An empty collect means the check did not produce anything, not that the
+    // system is up to date, so keep whatever was last known.
+    if (!out || out.trim().length === 0)
+      return
     try {
-      var j = JSON.parse(out.trim() || "{}")
+      var j = JSON.parse(out.trim())
       root.tooltip = j.tooltip || ""
       root.hasUpdates = (j["class"] === "has-updates")
       var m = (j.tooltip || "").match(/^(\d+)/)

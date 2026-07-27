@@ -8,6 +8,14 @@ QtObject {
   id: root
 
   property var list: []
+
+  readonly property int activeCount: {
+    var n = 0
+    for (var i = 0; i < list.length; i++)
+      if (!list[i].disabled)
+        n = n + 1
+    return n
+  }
   property var ddcByName: ({})
 
   function hasDdc(name) {
@@ -45,23 +53,8 @@ QtObject {
     Quickshell.execDetached(["ddcutil", "setvcp", "10", String(v), "--bus", String(d.bus)])
   }
 
-  readonly property int enabledCount: {
-    var n = 0
-    for (var i = 0; i < list.length; i++)
-      if (!list[i].disabled)
-        n++
-    return n
-  }
-
   function isInternal(name) {
     return /^(eDP|LVDS|DSI)/i.test(name)
-  }
-
-  function find(name) {
-    for (var i = 0; i < list.length; i++)
-      if (list[i].name === name)
-        return list[i]
-    return null
   }
 
   function refresh() {
@@ -90,68 +83,6 @@ QtObject {
     return best > 0 ? best : target
   }
 
-  function buildMonitorLua(m, x, y, scale) {
-    var hz = m.refreshRaw > 0 ? m.refreshRaw.toFixed(2) : m.refreshRate
-    return "hl.monitor({ output = \"" + m.name + "\", mode = \"" + m.width + "x" + m.height + "@" + hz
-      + "\", position = \"" + x + "x" + y + "\", scale = " + scale + " })"
-  }
-
-  function setScale(name, scale) {
-    var m = find(name)
-    if (!m || m.disabled)
-      return
-    applyLayout(name, snapScale(m.width, m.height, scale))
-  }
-
-  function applyLayout(changedName, changedScale) {
-    var mons = list.filter(function (m) {
-      return !m.disabled
-    })
-    mons.sort(function (a, b) {
-      return (a.x - b.x) || (a.y - b.y)
-    })
-    if (mons.length === 0)
-      return
-    var cx = mons[0].x
-    var placed = []
-    var grow = false
-    for (var i = 0; i < mons.length; i++) {
-      var m = mons[i]
-      var sc = (m.name === changedName) ? changedScale : m.scale
-      if (m.name === changedName)
-        grow = Math.round(m.width / sc) > Math.round(m.width / m.scale)
-      placed.push({ "m": m, "x": cx, "y": m.y, "scale": sc })
-      cx += Math.round(m.width / sc)
-    }
-    var order = []
-    for (var k = 0; k < placed.length; k++)
-      order.push(grow ? placed.length - 1 - k : k)
-    var cmds = []
-    for (var oi = 0; oi < order.length; oi++) {
-      var p = placed[order[oi]]
-      if (p.x !== p.m.x || p.y !== p.m.y || Math.abs(p.scale - p.m.scale) > 1e-4)
-        cmds.push(buildMonitorLua(p.m, p.x, p.y, p.scale))
-    }
-    if (cmds.length === 0)
-      return
-    runLua(cmds.join(" "))
-  }
-
-  // Hyprland merges monitor rules per output, so `disabled` sticks until it is
-  // explicitly cleared; omitting it here leaves the output off forever.
-  function setEnabled(name, on) {
-    if (!on && enabledCount <= 1)
-      return
-    runLua(on
-      ? "hl.monitor({ output = \"" + name + "\", mode = \"preferred\", position = \"auto\", scale = 1, disabled = false })"
-      : "hl.monitor({ output = \"" + name + "\", disabled = true })")
-  }
-
-  function runLua(code) {
-    setProc.command = ["hyprctl", "eval", code]
-    setProc.running = true
-  }
-
   function parse(text) {
     try {
       var raw = JSON.parse(text)
@@ -170,7 +101,11 @@ QtObject {
           "y": m.y || 0,
           "focused": !!m.focused,
           "disabled": !!m.disabled,
-          "internal": root.isInternal(m.name)
+          "internal": root.isInternal(m.name),
+          "transform": m.transform || 0,
+          "availableModes": m.availableModes || [],
+          "vrr": !!m.vrr,
+          "format": String(m.currentFormat || "")
         })
       }
       root.list = out
@@ -182,14 +117,6 @@ QtObject {
     command: ["hyprctl", "-j", "monitors", "all"]
     stdout: StdioCollector {
       onStreamFinished: root.parse(text)
-    }
-  }
-
-  property Process setProc: Process {
-    onExited: {
-      root.refresh()
-      // hyprctl returns before the compositor has settled, so read again.
-      root.refreshDebounce.restart()
     }
   }
 

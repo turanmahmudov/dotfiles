@@ -1,0 +1,8 @@
+{
+  "name": "Software updates",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" },
+    "info": { "surface": "cc", "file": "CcRow.qml" }
+  },
+  "page": { "mode": "cc", "file": "Page.qml" }
+}

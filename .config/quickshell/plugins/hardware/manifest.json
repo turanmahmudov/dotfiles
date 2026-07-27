@@ -1,0 +1,39 @@
+{
+  "name": "System health",
+  "settings": [
+    {
+      "key": "metric",
+      "type": "choice",
+      "label": "Reading",
+      "default": "mem",
+      "options": [
+        {
+          "value": "mem",
+          "label": "Memory"
+        },
+        {
+          "value": "cpu",
+          "label": "Processor"
+        },
+        {
+          "value": "temp",
+          "label": "Temperature"
+        }
+      ]
+    }
+  ],
+  "widgets": {
+    "bar": {
+      "surface": "bar",
+      "file": "Widget.qml"
+    },
+    "info": {
+      "surface": "cc",
+      "file": "CcRow.qml"
+    }
+  },
+  "page": {
+    "mode": "cc",
+    "file": "Page.qml"
+  }
+}

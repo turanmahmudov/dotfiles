@@ -1,0 +1,7 @@
+{
+  "name": "Now playing",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" }
+  },
+  "page": { "mode": "standalone", "file": "Page.qml" }
+}

@@ -15,13 +15,19 @@ Item {
 
     function listPlugins(): string {
       var arr = []
-      var inst = PluginRegistry.installed
-      for (var id in inst) {
-        var m = inst[id]
+      var plugins = PluginRegistry.listPlugins()
+      for (var i = 0; i < plugins.length; i++) {
+        var plugin = plugins[i]
+        var widgets = []
+        for (var name in plugin.widgets)
+          widgets.push(name + " (" + plugin.widgets[name].surface + ")")
         arr.push({
-          "id": id,
-          "name": m.name,
-          "kinds": m.kinds
+          "id": plugin.id,
+          "name": plugin.name,
+          "placement": plugin.placement,
+          "widgets": widgets,
+          "page": plugin.page ? plugin.page.mode : "",
+          "overlay": !!plugin.overlay
         })
       }
       return JSON.stringify(arr)
@@ -57,6 +63,12 @@ Item {
     function togglePanel(id: string): string {
       if (controller)
         controller.toggle(id, "")
+      return "ok"
+    }
+
+    function settings(): string {
+      if (controller)
+        controller.toggle(controller.settingsPage, "")
       return "ok"
     }
   }

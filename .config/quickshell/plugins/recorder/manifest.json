@@ -1,0 +1,38 @@
+{
+  "name": "Screen recorder",
+  "settings": [
+    {
+      "key": "mode",
+      "type": "choice",
+      "label": "Capture",
+      "default": "region",
+      "options": [
+        {
+          "value": "region",
+          "label": "Select a region"
+        },
+        {
+          "value": "window",
+          "label": "Pick a window"
+        },
+        {
+          "value": "monitor",
+          "label": "Whole screen"
+        }
+      ]
+    }
+  ],
+  "widgets": {
+    "bar": {
+      "surface": "bar",
+      "file": "Widget.qml"
+    },
+    "action": {
+      "surface": "cc",
+      "file": "CcAction.qml"
+    }
+  },
+  "overlay": {
+    "file": "Overlay.qml"
+  }
+}

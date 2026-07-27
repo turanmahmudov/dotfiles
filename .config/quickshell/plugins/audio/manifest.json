@@ -1,0 +1,32 @@
+{
+  "name": "Sound",
+  "settings": [
+    {
+      "key": "step",
+      "type": "number",
+      "label": "Scroll step",
+      "hint": "Volume change per wheel notch",
+      "default": 0.05,
+      "min": 0.01,
+      "max": 0.25,
+      "step": 0.01
+    }
+  ],
+  "widgets": {
+    "bar": {
+      "surface": "bar",
+      "file": "Widget.qml"
+    },
+    "volume": {
+      "surface": "cc",
+      "file": "CcVolume.qml"
+    }
+  },
+  "page": {
+    "mode": "cc",
+    "file": "Page.qml"
+  },
+  "overlay": {
+    "file": "Overlay.qml"
+  }
+}

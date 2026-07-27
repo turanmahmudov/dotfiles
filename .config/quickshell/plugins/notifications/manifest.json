@@ -1,0 +1,8 @@
+{
+  "name": "Notifications",
+  "widgets": {
+    "bar": { "surface": "bar", "file": "Widget.qml" }
+  },
+  "page": { "mode": "standalone", "file": "Page.qml" },
+  "overlay": { "file": "Overlay.qml" }
+}
