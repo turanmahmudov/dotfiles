@@ -61,8 +61,39 @@ return {
           frecency = true,
         },
       },
+      indent = {
+        enabled = true,
+        indent = { char = '│' },
+        scope = { char = '│', underline = true },
+      },
+      statuscolumn = {
+        enabled = true,
+        left = { 'mark', 'sign' },
+        right = { 'fold', 'git' },
+        folds = {
+          open = true,
+          git_hl = true,
+        },
+      },
     },
     keys = {
+      -- Terminal
+      {
+        '<leader>tt',
+        function()
+          Snacks.terminal.toggle(nil, { win = { position = 'bottom' } })
+        end,
+        desc = 'Terminal (bottom)',
+      },
+      {
+        '<leader>tf',
+        function()
+          -- Snacks keys terminals by cmd, cwd, env and count, not by position,
+          -- so the float needs its own count to be a separate instance
+          Snacks.terminal.toggle(nil, { win = { position = 'float' }, count = 2 })
+        end,
+        desc = 'Terminal (float)',
+      },
       {
         '<leader>gb',
         function()

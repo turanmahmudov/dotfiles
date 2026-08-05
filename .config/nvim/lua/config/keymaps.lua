@@ -87,9 +87,6 @@ map('n', '<leader>xq', '<cmd>copen<cr>', { desc = 'Quickfix List' })
 map('n', '[q', vim.cmd.cprev, { desc = 'Previous Quickfix' })
 map('n', ']q', vim.cmd.cnext, { desc = 'Next Quickfix' })
 
--- formatting
-map({ 'n', 'v' }, '<leader>cf', 'gggqG', { desc = 'Format' })
-
 -- Git
 -- TODO: Add git keymaps
 
@@ -114,19 +111,5 @@ map('n', '<leader><tab>[', '<cmd>tabprevious<cr>', { desc = 'Previous Tab' })
 map('n', '<leader>cx', '<cmd>lua vim.diagnostic.open_float()<CR>', { desc = 'Line diagnostics' })
 
 -- UI
-
--- [[ Basic Autocommands ]]
---  See `:help lua-guide-autocommands`
-
--- Highlight when yanking (copying) text
---  Try it with `yap` in normal mode
---  See `:help vim.hl.on_yank()`
-vim.api.nvim_create_autocmd('TextYankPost', {
-  desc = 'Highlight when yanking (copying) text',
-  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-  callback = function()
-    vim.hl.on_yank()
-  end,
-})
 
 -- vim: ts=2 sts=2 sw=2 et

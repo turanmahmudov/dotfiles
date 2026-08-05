@@ -78,22 +78,6 @@ return {
         },
         right = {
           {
-            ft = 'opencode_output',
-            size = { width = 60 },
-            wo = {
-              winbar = false,
-              winhighlight = 'Normal:OpencodeBackground',
-            },
-          },
-          {
-            ft = 'opencode',
-            size = { height = 0.25 },
-            wo = {
-              winbar = false,
-              winhighlight = 'Normal:OpencodeBackground',
-            },
-          },
-          {
             title = 'LSP (Trouble)',
             ft = 'trouble',
             filter = function(_, win)
@@ -102,13 +86,6 @@ return {
             end,
             open = 'Trouble lsp toggle focus=false win.position=right',
           },
-          {
-            title = 'neotest-summary',
-            ft = 'neotest-summary',
-            open = 'Neotest summary',
-            size = { width = 0.20 },
-          },
-          { title = 'Grug Far', ft = 'grug-far', size = { width = 0.4 } },
         },
         bottom = {
           {
@@ -176,12 +153,6 @@ return {
             open = 'Noice',
           },
           {
-            title = 'neotest-panel',
-            ft = 'neotest-output-panel',
-            size = { height = 0.25 },
-            open = 'Neotest output-panel',
-          },
-          {
             title = 'overseer',
             ft = 'OverseerList',
             open = 'OverseerToggle!',
@@ -197,7 +168,6 @@ return {
             end,
           },
           { title = 'Spectre', ft = 'spectre_panel', size = { height = 0.4 } },
-          { title = 'Neotest Output', ft = 'neotest-output-panel', size = { height = 15 } },
         },
         keys = {
           -- increase width
@@ -264,7 +234,6 @@ return {
       groups = {
         left = {
           { icon = ' ', titles = { 'Explorer', 'Outline' }, pick_key = 'e' },
-          { icon = 'AI ', titles = { 'opencode_output', 'opencode' }, pick_key = 'a' },
         },
       },
       statusline = {

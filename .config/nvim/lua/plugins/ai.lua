@@ -1,9 +1,14 @@
+local ai_proxy_base_url = os.getenv 'AI_PROXY_BASE_URL'
+
 return {
   { -- AI suggestions / autocomplete
     'milanglacier/minuet-ai.nvim',
-    dependencies = {
-      { 'nvim-lua/plenary.nvim' },
-      { 'hrsh7th/nvim-cmp' }, -- optional
+    enabled = ai_proxy_base_url ~= nil,
+    lazy = true, -- loaded by nvim-cmp, which lists it as a dependency
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    keys = {
+      { '<leader>av', '<cmd>Minuet virtualtext toggle<cr>', desc = 'Toggle Virtual Text' },
+      { '<leader>ac', '<cmd>Minuet cmp toggle<cr>', desc = 'Toggle Completion Source' },
     },
     config = function()
       require('minuet').setup {
@@ -23,35 +28,11 @@ return {
         provider = 'codestral',
         provider_options = {
           codestral = {
-            end_point = os.getenv 'MISTRAL_BASE_URL' .. '/v1/fim/completions',
-            api_key = 'MISTRAL_API_KEY',
+            end_point = ai_proxy_base_url .. '/mistral/v1/fim/completions',
+            api_key = 'AI_PROXY_API_KEY',
           },
         },
       }
     end,
-  },
-  { -- OpenCode frontend
-    'sudo-tee/opencode.nvim',
-    opts = {
-      ui = {
-        input = {
-          min_height = 0.25,
-          max_height = 0.25,
-        },
-      },
-    },
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      {
-        'MeanderingProgrammer/render-markdown.nvim',
-        opts = {
-          anti_conceal = { enabled = false },
-          file_types = { 'markdown', 'opencode_output' },
-        },
-        ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
-      },
-      'hrsh7th/nvim-cmp',
-      'folke/snacks.nvim',
-    },
   },
 }

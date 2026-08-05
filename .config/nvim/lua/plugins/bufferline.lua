@@ -17,12 +17,6 @@ return {
             highlight = 'Directory',
             text_align = 'center',
           },
-          {
-            filetype = 'codecompanion',
-            text = 'AI Chat',
-            highlight = 'Directory',
-            text_align = 'center',
-          },
         },
         close_command = function(bufnum)
           Snacks.bufdelete.delete(bufnum)
@@ -41,7 +35,7 @@ return {
         tab_size = 10,
         custom_filter = function(bufnr)
           -- filter out filetypes you don't want to see
-          local exclude_ft = { 'qf', 'fugitive', 'git', 'trouble', 'checkhealth', 'codecompanion' }
+          local exclude_ft = { 'qf', 'fugitive', 'git', 'trouble', 'checkhealth' }
           local cur_ft = vim.bo[bufnr].filetype
           local should_filter = vim.tbl_contains(exclude_ft, cur_ft)
 

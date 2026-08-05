@@ -1,26 +1,23 @@
 -- LSP Plugins
+local schemas_dir = vim.fn.stdpath 'config' .. '/schemas'
+
 return {
   {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
     -- used for completion, annotations and signatures of Neovim apis
     'folke/lazydev.nvim',
     ft = 'lua',
-    opts = {
-      library = {
-        -- Load luvit types when the `vim.uv` word is found
-        { path = 'luvit-meta/library', words = { 'vim%.uv' } },
-      },
-    },
+    opts = {},
   },
-  { 'Bilal2453/luvit-meta', lazy = true },
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     version = false,
+    event = { 'BufReadPre', 'BufNewFile' },
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
-      { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
-      'williamboman/mason-lspconfig.nvim',
+      { 'mason-org/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
+      'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Allows extra capabilities provided by nvim-cmp
@@ -231,8 +228,8 @@ return {
           settings = {
             yaml = {
               schemas = {
-                ['/home/turan/.config/nvim/schemas/symfony.json'] = 'services*.yaml',
-                ['/home/turan/.config/nvim/schemas/docker-compose.json'] = 'docker-compose*.yml',
+                [schemas_dir .. '/symfony.json'] = 'services*.yaml',
+                [schemas_dir .. '/docker-compose.json'] = 'docker-compose*.yml',
               },
               validate = true,
               completion = true,
@@ -248,7 +245,6 @@ return {
           },
         },
         vacuum = {},
-        solargraph = {},
         ruby_lsp = {},
         zls = {},
         rust_analyzer = {},
@@ -317,11 +313,12 @@ return {
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
+        -- Without this, every mason package with an lspconfig entry gets enabled,
+        -- including formatters and linters that are not language servers.
+        automatic_enable = false,
       }
 
-      vim.diagnostic.config {
-        virtual_text = true,
-      }
+      vim.lsp.enable(vim.tbl_keys(servers))
     end,
   },
 }

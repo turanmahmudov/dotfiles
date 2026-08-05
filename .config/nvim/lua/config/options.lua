@@ -55,7 +55,6 @@ vim.opt.splitbelow = true
 vim.opt.list = true
 vim.opt.listchars = {
   tab = '→ ', -- Tab character
-  trail = '·', -- Trailing spaces
   nbsp = '␣', -- Non-breaking space
   extends = '›', -- Line continues beyond screen (right)
   precedes = '‹', -- Line continues beyond screen (left)
@@ -94,7 +93,7 @@ vim.o.foldlevel = 99
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
 vim.o.foldmethod = 'expr'
-vim.o.foldexpr = 'v:lua.vim.lsp.foldexpr()'
+vim.o.foldexpr = "v:lua.require'config.folds'.calculateFoldExpr()"
 
 vim.opt.tabstop = 4 -- Number of spaces a <Tab> counts for
 vim.opt.shiftwidth = 4 -- Number of spaces for each indent

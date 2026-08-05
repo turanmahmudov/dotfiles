@@ -30,7 +30,9 @@ local cmp_kinds = {
 return {
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
-    event = 'InsertEnter',
+    -- CmdlineEnter matters: without it there is no ':' completion until the
+    -- first time you enter insert mode
+    event = { 'InsertEnter', 'CmdlineEnter' },
     dependencies = {
       { -- snippets
         'L3MON4D3/LuaSnip',
@@ -61,6 +63,7 @@ return {
       'hrsh7th/cmp-path',
       'hrsh7th/cmp-cmdline',
       'hrsh7th/cmp-nvim-lsp-signature-help',
+      'milanglacier/minuet-ai.nvim', -- AI source, loads with cmp
     },
     config = function()
       local cmp = require 'cmp'
@@ -68,6 +71,7 @@ return {
       luasnip.config.setup {}
 
       local lspkind = require 'lspkind'
+      local has_minuet, minuet = pcall(require, 'minuet')
 
       cmp.setup {
         snippet = {
@@ -105,7 +109,7 @@ return {
           ['<C-Space>'] = cmp.mapping.complete {},
 
           -- Manually trigger AI suggestion (Minuet)
-          ['<A-Space>'] = require('minuet').make_cmp_map(),
+          ['<A-Space>'] = has_minuet and minuet.make_cmp_map() or nil,
 
           -- Think of <c-l> as moving to the right of your snippet expansion.
           --  So if you have a snippet that's like:
@@ -146,11 +150,13 @@ return {
           { name = 'buffer' },
           { name = 'path' },
           { name = 'nvim_lsp_signature_help' },
-          { name = 'symfony_services' },
-          { name = 'minuet' },
+          has_minuet and { name = 'minuet' } or nil,
         },
         performance = {
           fetching_timeout = 1000,
+        },
+        experimental = {
+          ghost_text = true,
         },
         formatting = {
           fields = { 'kind', 'abbr', 'menu' },

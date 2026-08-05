@@ -21,39 +21,100 @@ return {
     'theHamsta/nvim-dap-virtual-text',
 
     -- Installs the debug adapters for you
-    'williamboman/mason.nvim',
+    'mason-org/mason.nvim',
     'jay-babu/mason-nvim-dap.nvim',
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
   },
-  keys = function(_, keys)
-    local dap = require 'dap'
-    local dapui = require 'dapui'
-    return {
-      -- Basic debugging keymaps, feel free to change to your liking!
-      { '<F4>', dap.pause, desc = 'Debug: Pause' },
-      { '<F5>', dap.continue, desc = 'Debug: Start/Continue' },
-      { '<F6>', dap.step_into, desc = 'Debug: Step Into' },
-      { '<F7>', dap.step_over, desc = 'Debug: Step Over' },
-      { '<F8>', dap.step_out, desc = 'Debug: Step Out' },
-      { '<F9>', dap.step_back, desc = 'Debug: Step Back' },
-      { '<F10>', dap.run_last, desc = 'Debug: Run last' },
-      { '<F12>', dap.terminate, desc = 'Debug: Terminate' },
-      { '<leader>dd', "<cmd>lua require('dap').disconnect({ terminateDebuggee = false })<CR>", desc = 'Debug: Disconnect' },
-      { '<leader>db', dap.toggle_breakpoint, desc = 'Debug: Toggle Breakpoint' },
-      {
-        '<leader>dB',
-        function()
-          dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ')
-        end,
-        desc = 'Debug: Set Breakpoint',
-      },
-      -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-      { '<leader>dt', dapui.toggle, desc = 'Debug: Toggle UI' },
-      unpack(keys),
-    }
-  end,
+  keys = {
+    -- Basic debugging keymaps, feel free to change to your liking!
+    {
+      '<F4>',
+      function()
+        require('dap').pause()
+      end,
+      desc = 'Debug: Pause',
+    },
+    {
+      '<F5>',
+      function()
+        require('dap').continue()
+      end,
+      desc = 'Debug: Start/Continue',
+    },
+    {
+      '<F6>',
+      function()
+        require('dap').step_into()
+      end,
+      desc = 'Debug: Step Into',
+    },
+    {
+      '<F7>',
+      function()
+        require('dap').step_over()
+      end,
+      desc = 'Debug: Step Over',
+    },
+    {
+      '<F8>',
+      function()
+        require('dap').step_out()
+      end,
+      desc = 'Debug: Step Out',
+    },
+    {
+      '<F9>',
+      function()
+        require('dap').step_back()
+      end,
+      desc = 'Debug: Step Back',
+    },
+    {
+      '<F10>',
+      function()
+        require('dap').run_last()
+      end,
+      desc = 'Debug: Run last',
+    },
+    {
+      '<F12>',
+      function()
+        require('dap').terminate()
+      end,
+      desc = 'Debug: Terminate',
+    },
+    {
+      '<leader>dd',
+      function()
+        require('dap').disconnect { terminateDebuggee = false }
+      end,
+      desc = 'Debug: Disconnect',
+    },
+    {
+      '<leader>db',
+      function()
+        require('dap').toggle_breakpoint()
+      end,
+      desc = 'Debug: Toggle Breakpoint',
+    },
+    {
+      '<leader>dB',
+      function()
+        require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ')
+      end,
+      desc = 'Debug: Set Breakpoint',
+    },
+    -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
+    {
+      '<leader>dt',
+      function()
+        require('dapui').toggle()
+      end,
+      desc = 'Debug: Toggle UI',
+    },
+  },
   config = function()
     local dap = require 'dap'
     local dapui = require 'dapui'

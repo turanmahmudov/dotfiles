@@ -1,66 +1,39 @@
+local parsers = {
+  'bash',
+  'c',
+  'diff',
+  'html',
+  'lua',
+  'luadoc',
+  'markdown',
+  'markdown_inline',
+  'query',
+  'vim',
+  'vimdoc',
+  'go',
+  'gomod',
+  'gowork',
+  'gosum',
+  'php',
+  'python',
+  'ruby',
+  'rust',
+  'javascript',
+  'typescript',
+  'yaml',
+  'zig',
+}
+
 return {
   {
     'nvim-treesitter/nvim-treesitter',
     branch = 'main',
     build = ':TSUpdate',
-    main = 'nvim-treesitter',
-    opts = {
-      ensure_installed = {
-        'bash',
-        'c',
-        'diff',
-        'html',
-        'lua',
-        'luadoc',
-        'markdown',
-        'markdown_inline',
-        'query',
-        'vim',
-        'vimdoc',
-        'go',
-        'gomod',
-        'gowork',
-        'gosum',
-        'php',
-        'python',
-        'ruby',
-        'rust',
-        'javascript',
-        'typescript',
-        'zig',
-      },
-      auto_install = true,
-    },
     init = function()
-      local ensure_installed = {
-        'bash',
-        'c',
-        'diff',
-        'html',
-        'lua',
-        'luadoc',
-        'markdown',
-        'markdown_inline',
-        'query',
-        'vim',
-        'vimdoc',
-        'go',
-        'gomod',
-        'gowork',
-        'gosum',
-        'php',
-        'python',
-        'ruby',
-        'rust',
-        'javascript',
-        'typescript',
-        'zig',
-      }
       local ts = require 'nvim-treesitter'
-      local config = require 'nvim-treesitter.config'
-      local installed = config.get_installed()
+      local installed = require('nvim-treesitter.config').get_installed()
       local to_install = vim
-        .iter(ensure_installed)
+        .iter(parsers)
         :filter(function(parser)
           return not vim.tbl_contains(installed, parser)
         end)
@@ -80,10 +53,14 @@ return {
   { -- split-join
     'Wansmer/treesj',
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
-    opts = {},
-    config = function(_, opts)
-      require('treesj').setup(opts)
-    end,
+    keys = {
+      { '<leader>m', '<cmd>TSJToggle<cr>', desc = 'Split/Join Toggle' },
+      { '<leader>rj', '<cmd>TSJJoin<cr>', desc = 'Join Node' },
+      { '<leader>rs', '<cmd>TSJSplit<cr>', desc = 'Split Node' },
+    },
+    opts = {
+      use_default_keymaps = false,
+    },
   },
 }
 -- vim: ts=2 sts=2 sw=2 et

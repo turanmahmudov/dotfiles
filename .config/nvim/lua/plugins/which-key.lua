@@ -82,7 +82,7 @@ return {
         { '<leader>t', group = 'Terminal' },
         { '<leader>u', group = 'UI' },
         { '<leader>h', group = 'Git Hunk', mode = { 'n', 'v' } },
-        { '<leader>q', group = 'Session', mode = { 'n', 'v' } },
+        { '<leader>q', group = 'Quit', mode = { 'n', 'v' } },
         { '<leader>x', group = 'Diagnostics/Quickfix' },
         { '<leader><Tab>', group = 'Tab', mode = { 'n', 'v' } },
       },
