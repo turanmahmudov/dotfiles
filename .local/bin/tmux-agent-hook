@@ -1,0 +1,14 @@
+#!/bin/sh
+# Record what an agent reports about itself, from an agent lifecycle hook.
+# Usage: tmux-agent-hook working|blocked|done
+# Claude Code runs a hook with the pane environment, so TMUX_PANE points at the right pane.
+# This writes one fact and nothing else. The daemon owns every option that the status bar reads.
+set -eu
+
+state=${1:-}
+[ -n "${TMUX_PANE:-}" ] || exit 0
+[ -n "$state" ] || exit 0
+command -v tmux >/dev/null 2>&1 || exit 0
+
+tmux set -p -t "$TMUX_PANE" @agent_hook "$state" 2>/dev/null || true
+exit 0

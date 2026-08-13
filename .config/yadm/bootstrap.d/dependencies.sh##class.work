@@ -122,6 +122,7 @@ fi
 
 # Mise
 mise use --global node@24
+mise use --global bun
 mise use --global ruby@4
 mise use --global go@1.25
 mise plugin install php https://github.com/verzly/mise-php#latest
@@ -133,6 +134,7 @@ mise use --global opencode
 mise use --global tree-sitter
 mise use --global lazygit
 mise use --global lazydocker
+mise use --global github:agavra/tuicr
 mise use --global terraform
 mise use --global awscli
 mise use --global zig

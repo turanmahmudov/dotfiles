@@ -224,6 +224,7 @@ return {
           end,
         },
         eslint = {},
+        biome = {},
         yamlls = {
           settings = {
             yaml = {

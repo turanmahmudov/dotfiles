@@ -1,0 +1,25 @@
+#!/bin/sh
+# Pick a coding agent from a list and go to its pane. Meant for a tmux popup.
+set -eu
+
+tab=$(printf '\t')
+format="#{pane_id}${tab}#{@agent_state}${tab}#{@agent_name}${tab}#{session_name}${tab}#{window_index}${tab}#{window_name}"
+
+selected=$(tmux list-panes -a -F "$format" -f '#{@agent_name}' 2>/dev/null |
+    sort -t "$tab" -k4,4 -k5,5n |
+    awk -F'\t' '
+        BEGIN {
+            color["blocked"] = "\033[33m"; mark["blocked"] = "●"
+            color["working"] = "\033[32m"; mark["working"] = "◐"
+            color["done"] = "\033[34m"; mark["done"] = "✓"
+            color["idle"] = "\033[90m"; mark["idle"] = "○"
+        }
+        { printf "%s\t%s%s %-7s\033[0m %s:%s %s %s\n", $1, color[$2], mark[$2], $2, $4, $5, $6, $3 }' |
+    fzf --ansi --delimiter="$tab" --with-nth=2.. --no-sort --header='jump to agent' || true)
+
+[ -n "$selected" ] || exit 0
+
+pane=${selected%%"$tab"*}
+tmux select-pane -t "$pane"
+tmux select-window -t "$pane"
+tmux switch-client -t "$(tmux display -p -t "$pane" '#{session_name}')"
