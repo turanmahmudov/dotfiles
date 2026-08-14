@@ -1,0 +1,10 @@
+os:
+  editPreset: "nvim-remote"
+gui:
+  nerdFontsVersion: "3"
+customCommands:
+  - key: "<c-g>"
+    context: "global"
+    description: "Review the diff"
+    command: '${GIT_REVIEW:-tuicr -w}'
+    output: terminal

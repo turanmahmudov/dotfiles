@@ -1,0 +1,224 @@
+#!/bin/sh
+# The state of the coding agents that run on this machine.
+#
+#   agent report <name> working|blocked|done|gone [learn]   an agent reports itself
+#   agent focus <key>                                       go to that agent
+#   agent list                                              print the live agents
+#   agent jump                                              pick one from a list
+#
+# The agents are the only producers: the Claude Code plugin and the opencode plugin call
+# report. The bar and tmux only show what they wrote.
+#
+# One line per agent: key, agent, state, pid, pane, title, window, place, since.
+# Since is the time of the report, which is how the panel tells a live state from a stuck one.
+# The key is the tmux pane when the agent runs in tmux, otherwise its process id.
+# The window is the hyprland address of the terminal, which is how an agent outside tmux
+# is found again. It is read from the focused window, but only when the agent reports a
+# submitted prompt (learn) or when nothing is recorded yet. Any other report can arrive
+# while the user looks at another window, which would record the wrong one.
+# No field may be empty, because the shell folds repeated tabs into one separator on read.
+set -eu
+
+file=${XDG_RUNTIME_DIR:-/tmp}/agents.tsv
+tab=$(printf '\t')
+
+read_field() {
+    awk -F'\t' -v want="$1" -v column="$2" '$1 == want { print $column }' "$file" 2>/dev/null || true
+}
+
+# The first agent process above the caller. The hook runs under a short lived shell, and
+# this id stays the same across reports, which is how a dead agent is recognised later.
+resolve_pid() {
+    resolved=$PPID
+    walk=$PPID
+    level=0
+    while [ "$level" -lt 6 ] && [ "$walk" -gt 1 ]; do
+        if [ "$(ps -o comm= -p "$walk" 2>/dev/null || true)" = "$1" ]; then
+            resolved=$walk
+            break
+        fi
+        walk=$(ps -o ppid= -p "$walk" 2>/dev/null | tr -d ' ' || true)
+        [ -n "$walk" ] || break
+        level=$((level + 1))
+    done
+    printf '%s\n' "$resolved"
+}
+
+report() {
+    agent=${1:-}
+    state=${2:-}
+    learn=${3:-}
+    [ -n "$agent" ] && [ -n "$state" ] || exit 0
+
+    pane=${TMUX_PANE:-}
+    pid=$(resolve_pid "$agent")
+    key=${pane:-pid:$pid}
+    title=${PWD##*/}
+
+    place="-"
+    if [ -n "$pane" ] && command -v tmux >/dev/null 2>&1; then
+        place=$(tmux display -p -t "$pane" '#{session_name}:#{window_index}' 2>/dev/null || true)
+        [ -n "$place" ] || place="-"
+    fi
+
+    window=$(read_field "$key" 7)
+    [ -n "$window" ] || window="-"
+    if { [ "$window" = "-" ] || [ "$learn" = learn ]; } &&
+        command -v hyprctl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+        found=$(hyprctl -j activewindow 2>/dev/null |
+            jq -r --arg pid "${KITTY_PID:-0}" \
+                'select((.pid | tostring) == $pid) | .address // empty' 2>/dev/null || true)
+        if [ -n "$found" ]; then
+            window=$found
+        fi
+    fi
+
+    {
+        keep_live "$key"
+        if [ "$state" != gone ]; then
+            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+                "$key" "$agent" "$state" "$pid" "${pane:--}" "${title:--}" "$window" "$place" \
+                "$(date +%s)"
+        fi
+    } >"$file.$$"
+    mv -f "$file.$$" "$file"
+
+    # tmux only shows the report. The pane and its window carry the mark.
+    [ -n "$pane" ] && command -v tmux >/dev/null 2>&1 || return 0
+    if [ "$state" = gone ]; then
+        tmux set -p -t "$pane" -u @agent_state 2>/dev/null || true
+        tmux set -p -t "$pane" -u @agent_name 2>/dev/null || true
+    else
+        tmux set -p -t "$pane" @agent_state "$state" 2>/dev/null || true
+        tmux set -p -t "$pane" @agent_name "$agent" 2>/dev/null || true
+    fi
+    sync_window "$pane"
+    tmux refresh-client -S 2>/dev/null || true
+}
+
+# A window can hold more than one agent, and the mark has to speak for all of them,
+# so it takes the state that asks for the most attention.
+sync_window() {
+    worst=$(tmux list-panes -t "$1" -F '#{@agent_state}' -f '#{@agent_name}' 2>/dev/null |
+        awk '
+            BEGIN { rank["done"] = 1; rank["working"] = 2; rank["blocked"] = 3 }
+            rank[$1] > best { best = rank[$1]; state = $1 }
+            END { print state }')
+    if [ -n "$worst" ]; then
+        tmux set -w -t "$1" @agent_state "$worst" 2>/dev/null || true
+    else
+        tmux set -w -t "$1" -u @agent_state 2>/dev/null || true
+    fi
+}
+
+# Every agent that still has a process, except the one named by the argument.
+# The read names carry a prefix because a function shares the caller's variables here.
+keep_live() {
+    [ -f "$file" ] || return 0
+    while IFS="$tab" read -r old_key old_agent old_state old_pid old_pane old_title old_window old_place old_since; do
+        [ -n "$old_key" ] || continue
+        [ "$old_key" != "${1:-}" ] || continue
+        kill -0 "$old_pid" 2>/dev/null || continue
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+            "$old_key" "$old_agent" "$old_state" "$old_pid" "$old_pane" "$old_title" \
+            "$old_window" "${old_place:--}" "${old_since:-0}"
+    done <"$file"
+}
+
+# An agent that is killed cannot report its own end, and the last one to die leaves nobody
+# behind to clean up after it. The shell calls this, and it rewrites only when a row went.
+list() {
+    [ -f "$file" ] || exit 0
+    live=$(keep_live "")
+    if [ "$live" != "$(cat "$file")" ]; then
+        if [ -n "$live" ]; then
+            printf '%s\n' "$live" >"$file.$$"
+        else
+            : >"$file.$$"
+        fi
+        mv -f "$file.$$" "$file"
+    fi
+    [ -n "$live" ] || exit 0
+    printf '%s\n' "$live"
+}
+
+focus() {
+    key=${1:-}
+    [ -n "$key" ] || exit 0
+
+    pane=$(read_field "$key" 5)
+    window=$(read_field "$key" 7)
+
+    # Going to the agent answers the question the waiting mark asks, so the mark drops here.
+    # It also frees a mark left behind by an agent that stopped reporting.
+    if [ -f "$file" ]; then
+        awk -F'\t' -v OFS='\t' -v want="$key" \
+            '$1 == want && $3 == "blocked" { $3 = "done" } { print }' "$file" >"$file.$$" &&
+            mv -f "$file.$$" "$file"
+    fi
+
+    if [ "${pane:--}" != "-" ] && command -v tmux >/dev/null 2>&1; then
+        if [ "$(tmux show -p -t "$pane" -qv @agent_state 2>/dev/null || true)" = blocked ]; then
+            tmux set -p -t "$pane" @agent_state "done" 2>/dev/null || true
+            sync_window "$pane"
+            tmux refresh-client -S 2>/dev/null || true
+        fi
+
+        session=$(tmux display -p -t "$pane" '#{session_name}' 2>/dev/null || true)
+        if [ -n "$session" ]; then
+            client=$(tmux list-clients -F "#{client_name}${tab}#{client_session}" 2>/dev/null |
+                awk -F'\t' -v want="$session" '$2 == want { print $1; exit }')
+            [ -n "$client" ] || client=$(tmux list-clients -F '#{client_name}' 2>/dev/null | head -1)
+            if [ -n "$client" ]; then
+                tmux switch-client -c "$client" -t "$session" 2>/dev/null || true
+                tmux select-window -t "$pane" 2>/dev/null || true
+                tmux select-pane -t "$pane" 2>/dev/null || true
+            fi
+            # tmux writes the session name into the terminal title, which names the window here.
+            if [ "${window:--}" = "-" ] && command -v hyprctl >/dev/null 2>&1 &&
+                command -v jq >/dev/null 2>&1; then
+                window=$(hyprctl -j clients 2>/dev/null |
+                    jq -r --arg title "$session - tmux" \
+                        'map(select(.title == $title)) | .[0].address // empty')
+            fi
+        fi
+    fi
+
+    [ "${window:--}" != "-" ] || exit 0
+    command -v hyprctl >/dev/null 2>&1 || exit 0
+    command -v jq >/dev/null 2>&1 || exit 0
+
+    # A recorded window can be closed by now, and focusing a dead address logs an error.
+    live=$(hyprctl -j clients 2>/dev/null |
+        jq -r --arg address "$window" 'map(select(.address == $address)) | .[0].address // empty')
+    [ -n "$live" ] || exit 0
+
+    # Hyprland runs a lua config here, so a dispatch takes the lua form, not the plain one.
+    hyprctl dispatch "hl.dsp.focus({ window = 'address:$live' })" >/dev/null 2>&1 || true
+}
+
+jump() {
+    selected=$(list | awk -F'\t' '
+        BEGIN {
+            color["blocked"] = "\033[33m"; mark["blocked"] = "●"
+            color["working"] = "\033[32m"; mark["working"] = "◐"
+            color["done"] = "\033[34m"; mark["done"] = "✓"
+        }
+        { printf "%s\t%s%s %-7s\033[0m %-9s %s %s\n", $1, color[$3], mark[$3], $3, $2, $6, ($8 == "-" ? "" : $8) }' |
+        fzf --ansi --delimiter="$tab" --with-nth=2.. --no-sort --header='go to agent' || true)
+    [ -n "$selected" ] || exit 0
+    focus "${selected%%"$tab"*}"
+}
+
+command=${1:-}
+[ "$#" -eq 0 ] || shift
+case $command in
+report) report "$@" ;;
+focus) focus "$@" ;;
+list) list ;;
+jump) jump ;;
+*)
+    echo "usage: ${0##*/} report <name> <state> [learn] | focus <key> | list | jump" >&2
+    exit 1
+    ;;
+esac

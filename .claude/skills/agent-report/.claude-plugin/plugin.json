@@ -1,0 +1,5 @@
+{
+  "name": "agent-report",
+  "description": "Report the state of this session to the desktop, so the bar shows when an agent waits",
+  "version": "1.0.0"
+}

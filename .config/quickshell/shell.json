@@ -55,6 +55,9 @@
           "id": "shell.power"
         },
         {
+          "id": "shell.agents"
+        },
+        {
           "id": "shell.notifications"
         },
         {
