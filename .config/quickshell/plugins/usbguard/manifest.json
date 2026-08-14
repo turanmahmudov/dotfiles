@@ -1,0 +1,8 @@
+{
+  "name": "USB devices",
+  "widgets": {
+    "info": { "surface": "cc", "file": "CcRow.qml" }
+  },
+  "page": { "mode": "cc", "file": "Page.qml" },
+  "overlay": { "file": "Overlay.qml" }
+}

@@ -133,6 +133,9 @@
             "id": "shell.updates:info"
           },
           {
+            "id": "shell.usbguard:info"
+          },
+          {
             "id": "shell.hardware:info"
           }
         ]
