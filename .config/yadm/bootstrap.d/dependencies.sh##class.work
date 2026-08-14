@@ -36,8 +36,8 @@ sudo apt-get update -qq
 
 # Deb packages
 sudo apt-get install -y \
-    firefox \
     build-essential \
+    intel-media-va-driver-non-free vainfo
     zsh \
     git \
     curl \
@@ -62,7 +62,8 @@ sudo apt-get install -y \
     slurp grim wf-recorder \
     wl-clipboard cliphist \
     syncthing \
-    openconnect
+    openconnect \
+    firefox
 
 # Slack
 if ! command -v slack >/dev/null 2>&1; then
