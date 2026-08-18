@@ -124,6 +124,7 @@ fi
 # Mise
 mise use --global node@24
 mise use --global bun
+mise settings ruby.compile = false
 mise use --global ruby@4
 mise use --global go@1.25
 mise plugin install php https://github.com/verzly/mise-php#latest
