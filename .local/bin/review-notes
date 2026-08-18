@@ -1,0 +1,77 @@
+#!/bin/sh
+# The comments of a tuicr review, on their way to a coding agent.
+#
+#   review-notes print [slug]            print the comments of this repo as one prompt
+#   review-notes send [repo] [session]   hand them to an agent of that tmux session
+#
+# tuicr keeps a review session per checkout and per pull request, and it holds the comments
+# after the TUI closes. Print reads them back and anchors each one to its file and line.
+# Send opens the menu only when a repo has comments and the session has an agent to take
+# them. Every other answer is one line on the status bar, because a popup that reports a
+# state and nothing else takes the screen for no work.
+set -eu
+
+resolve_root() {
+    root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+    [ -n "$root" ] || { echo "not in a git repository" >&2; exit 1; }
+    printf '%s\n' "$root"
+}
+
+# An active session is the one the review window works on, so it wins over a newer one.
+# jq sorts false before true, which puts the active session last, and the reverse puts it first.
+resolve_slug() {
+    tuicr review list --repo "$1" 2>/dev/null |
+        jq -r 'map(select(.comment_count > 0))
+            | sort_by(.active, .updated_at) | reverse | .[0].slug // empty'
+}
+
+print_notes() {
+    command -v tuicr >/dev/null 2>&1 || { echo "tuicr is not installed" >&2; exit 1; }
+    command -v jq >/dev/null 2>&1 || { echo "jq is not installed" >&2; exit 1; }
+
+    root=$(resolve_root)
+    slug=${1:-}
+    [ -n "$slug" ] || slug=$(resolve_slug "$root")
+    [ -n "$slug" ] || { echo "no review of ${root##*/} has comments" >&2; exit 1; }
+
+    tuicr review comments --session "$slug" --repo "$root" | jq -r '
+        def resolve_anchor: "\(.path):\(if .start_line == .end_line then "\(.start_line)" else "\(.start_line)-\(.end_line)" end)"
+            + (if .side == "old" then " (removed line)" else "" end);
+        if length == 0 then empty else
+            "Review notes on the current diff. Address every note.",
+            "",
+            (.[] | "- \(resolve_anchor)\n  \(.content | gsub("\n"; "\n  "))")
+        end
+    '
+}
+
+send_notes() {
+    repo=${1:-$PWD}
+    cd "$repo"
+
+    reason=$(print_notes 2>&1 >/dev/null) || {
+        tmux display-message -d 4000 "$reason"
+        exit 0
+    }
+
+    session=${2:-$(tmux display -p '#{session_name}')}
+    if [ -z "$(agent list "$session")" ]; then
+        tmux display-message -d 4000 "no agent of $session to take the review of ${repo##*/}"
+        exit 0
+    fi
+
+    # The popup keeps a failure of its own on screen, so its status adds nothing here, and
+    # run-shell would print it on the status bar a second time.
+    tmux display-popup -EE -d "$repo" -w 60% -h 50% "review-notes print | agent send" || exit 0
+}
+
+command=${1:-}
+[ "$#" -eq 0 ] || shift
+case $command in
+print) print_notes "$@" ;;
+send) send_notes "$@" ;;
+*)
+    echo "usage: ${0##*/} print [slug] | send [repo] [session]" >&2
+    exit 1
+    ;;
+esac

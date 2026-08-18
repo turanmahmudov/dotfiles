@@ -3,11 +3,12 @@
 #
 #   agent report <name> working|blocked|done|gone [learn]   an agent reports itself
 #   agent focus <key>                                       go to that agent
-#   agent list                                              print the live agents
+#   agent list [session]                                    print the live agents
 #   agent jump                                              pick one from a list
+#   agent send [key]                                        type stdin into that agent
 #
-# The agents are the only producers: the Claude Code plugin and the opencode plugin call
-# report. The bar and tmux only show what they wrote.
+# The agents are the only producers of the state: the Claude Code plugin and the opencode
+# plugin call report. The bar and tmux only show what they wrote.
 #
 # One line per agent: key, agent, state, pid, pane, title, window, place, since.
 # Since is the time of the report, which is how the panel tells a live state from a stuck one.
@@ -139,6 +140,13 @@ list() {
         mv -f "$file.$$" "$file"
     fi
     [ -n "$live" ] || exit 0
+    # A session name keeps the agents of that session, which also drops the agents that run
+    # outside tmux, because their place is empty.
+    if [ -n "${1:-}" ]; then
+        live=$(printf '%s\n' "$live" |
+            awk -F'\t' -v session="$1" 'substr($8, 1, index($8, ":") - 1) == session')
+        [ -n "$live" ] || exit 0
+    fi
     printf '%s\n' "$live"
 }
 
@@ -197,17 +205,78 @@ focus() {
     hyprctl dispatch "hl.dsp.focus({ window = 'address:$live' })" >/dev/null 2>&1 || true
 }
 
-jump() {
-    selected=$(list | awk -F'\t' '
+# The live agents in a menu. It prints the row of the chosen one, and the key comes first.
+# The sort decides what a typed word selects. A jump keeps the report order. A send ranks by
+# the match instead, because the name of one agent is a loose match of another, and without a
+# rank the text reaches whichever of them the state file holds first.
+pick() {
+    rows=$(list "${1:-}" | awk -F'\t' '
         BEGIN {
             color["blocked"] = "\033[33m"; mark["blocked"] = "●"
             color["working"] = "\033[32m"; mark["working"] = "◐"
             color["done"] = "\033[34m"; mark["done"] = "✓"
         }
-        { printf "%s\t%s%s %-7s\033[0m %-9s %s %s\n", $1, color[$3], mark[$3], $3, $2, $6, ($8 == "-" ? "" : $8) }' |
-        fzf --ansi --delimiter="$tab" --with-nth=2.. --no-sort --header='go to agent' || true)
+        { printf "%s\t%s%s %-7s\033[0m %-9s %s %s\n", $1, color[$3], mark[$3], $3, $2, $6, ($8 == "-" ? "" : $8) }')
+    # An empty menu tells the caller nothing, so a caller that has a reason to report says it.
+    [ -n "$rows" ] || return 1
+    printf '%s\n' "$rows" |
+        fzf --ansi --delimiter="$tab" --with-nth=2.. ${3-} --header="${2:-go to agent}" || true
+}
+
+jump() {
+    selected=$(pick "" "go to agent" --no-sort) || exit 0
     [ -n "$selected" ] || exit 0
     focus "${selected%%"$tab"*}"
+}
+
+# Text that the user wrote elsewhere, typed into the prompt of a running agent.
+# The agent reads a terminal, so the pane pastes the text and then submits it.
+send() {
+    note=$(mktemp)
+    trap 'rm -f "$note"' EXIT HUP INT TERM
+    cat >"$note"
+    [ -s "$note" ] || { echo "nothing to send" >&2; exit 1; }
+
+    command -v tmux >/dev/null 2>&1 || { echo "tmux is not running" >&2; exit 1; }
+
+    key=${1:-}
+    if [ -z "$key" ]; then
+        # The session holds the work the text is about, so the menu stops at its own agents.
+        session=$(tmux display -p '#{session_name}' 2>/dev/null || true)
+        [ -n "$session" ] || { echo "no tmux session to send from" >&2; exit 1; }
+        selected=$(pick "$session" "send to an agent of $session") ||
+            { echo "no agent of $session reported itself" >&2; exit 1; }
+        [ -n "$selected" ] || exit 0
+        key=${selected%%"$tab"*}
+    fi
+
+    pane=$(read_field "$key" 5)
+    # An agent reports itself only after its first prompt, and a fresh one is in no row yet.
+    # Its key is the pane, so tmux can still name the target.
+    if [ "${pane:--}" = "-" ] && tmux display -p -t "$key" '#{pane_id}' >/dev/null 2>&1; then
+        pane=$key
+    fi
+    [ "${pane:--}" != "-" ] || { echo "agent $key does not run in a tmux pane" >&2; exit 1; }
+
+    # The text belongs to the repository it was written in. An agent of another repository
+    # cannot act on it, so the send stops here instead of asking for a change to files that
+    # the agent does not have. Two worktrees of one repository count as two repositories.
+    note_repo=$(git rev-parse --show-toplevel 2>/dev/null || true)
+    agent_path=$(tmux display -p -t "$pane" '#{pane_current_path}' 2>/dev/null || true)
+    agent_repo=""
+    if [ -n "$agent_path" ]; then
+        agent_repo=$(git -C "$agent_path" rev-parse --show-toplevel 2>/dev/null || true)
+    fi
+    if [ -n "$note_repo" ] && [ -n "$agent_repo" ] && [ "$note_repo" != "$agent_repo" ]; then
+        echo "the text is from $note_repo" >&2
+        echo "this agent works in $agent_repo" >&2
+        exit 1
+    fi
+
+    tmux load-buffer -b agent-send "$note"
+    # Bracketed paste keeps a multiple line note as one prompt instead of many submits.
+    tmux paste-buffer -d -b agent-send -p -t "$pane"
+    tmux send-keys -t "$pane" Enter
 }
 
 command=${1:-}
@@ -215,10 +284,11 @@ command=${1:-}
 case $command in
 report) report "$@" ;;
 focus) focus "$@" ;;
-list) list ;;
+list) list "$@" ;;
 jump) jump ;;
+send) send "$@" ;;
 *)
-    echo "usage: ${0##*/} report <name> <state> [learn] | focus <key> | list | jump" >&2
+    echo "usage: ${0##*/} report <name> <state> [learn] | focus <key> | list [session] | jump | send [key]" >&2
     exit 1
     ;;
 esac
