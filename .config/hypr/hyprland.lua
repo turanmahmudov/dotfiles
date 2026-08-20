@@ -30,6 +30,7 @@ hl.env("XDG_SESSION_DESKTOP", "Hyprland")
 
 hl.env("GDK_BACKEND", "wayland,x11,*")
 hl.env("QT_QPA_PLATFORM", "wayland;xcb")
+hl.env("QT_QPA_PLATFORMTHEME", "gtk3")
 hl.env("QT_STYLE_OVERRIDE", "Fusion")
 hl.env("QT_QUICK_CONTROLS_STYLE", "Fusion")
 hl.env("SDL_VIDEODRIVER", "wayland")

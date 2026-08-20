@@ -6,22 +6,22 @@
 # Check VPN status using both gp-vpn status (PID file) and openconnect process check
 if ~/.local/bin/gp-vpn status > /dev/null 2>&1 || pgrep -x "openconnect" > /dev/null; then
     # Disconnect
-    notify-send "Disconnecting..." "Disconnecting from VPN: $VPN_GATEWAY" -i "network-vpn-disconnected"
+    notify-send "Disconnecting..." "Disconnecting from VPN: $VPN_GATEWAY" -i "network-vpn-disconnected-symbolic"
 
     ~/.local/bin/gp-vpn disconnect
 
     if [ $? -ne 0 ]; then
-        notify-send "Disconnect Failed" "Failed to disconnect from VPN" -i "network-vpn"
+        notify-send "Disconnect Failed" "Failed to disconnect from VPN" -i "network-vpn-symbolic"
     fi
 
     exit 0
 fi
 
 # Connect
-notify-send "Connecting..." "Connecting to VPN: $VPN_GATEWAY" -i "network-vpn"
+notify-send "Connecting..." "Connecting to VPN: $VPN_GATEWAY" -i "network-vpn-symbolic"
 
 ~/.local/bin/gp-vpn connect -g --allow-insecure $VPN_GATEWAY
 
 if [ $? -ne 0 ]; then
-    notify-send "Connection Failed" "Failed to connect to VPN" -i "network-vpn-disconnected"
+    notify-send "Connection Failed" "Failed to connect to VPN" -i "network-vpn-disconnected-symbolic"
 fi
