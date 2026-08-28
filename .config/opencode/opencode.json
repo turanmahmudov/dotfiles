@@ -13,12 +13,6 @@
         "baseURL": "{env:OPENAI_BASE_URL}/v1",
         "apiKey": "{env:OPENAI_API_KEY}"
       }
-    },
-    "xai": {
-      "options": {
-        "baseURL": "{env:GROK_BASE_URL}/v1",
-        "apiKey": "{env:GROK_API_KEY}"
-      }
     }
   },
   "mcp": {
