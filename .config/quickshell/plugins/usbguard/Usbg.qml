@@ -86,10 +86,12 @@ QtObject {
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i]
       var head = line.match(/^(\d+):\s+(\S+)\s+id\s+(\S+)\s/)
-      if (!head || line.indexOf("with-interface 09:00:00") !== -1)
+      if (!head)
+        continue
+      var port = line.match(/\svia-port "([^"]*)"/)
+      if (port && /^usb\d+$/.test(port[1]))
         continue
       var name = line.match(/\sname "([^"]*)"/)
-      var port = line.match(/\svia-port "([^"]*)"/)
       var hash = line.match(/\shash "([^"]*)"/)
       out.push({
         "id": parseInt(head[1]),

@@ -6,10 +6,11 @@ import Quickshell.Io
 QtObject {
   id: root
 
-  readonly property string path: Quickshell.env("HOME") + "/.config/hypr/monitors.lua"
+  readonly property string path: Quickshell.env("HOME") + "/.config/hypr/monitors_generated.lua"
 
   property var order: []
   property int revision: 0
+  property string applied: ""
 
   function resolveOrder() {
     root.revision
@@ -20,7 +21,12 @@ QtObject {
     for (var j = 0; j < root.order.length; j++)
       if (root.findMonitor(root.order[j]))
         out.push(root.order[j])
-    var list = Monitors.list
+    var list = Monitors.list.slice()
+    list.sort(function (a, b) {
+      if (a.disabled !== b.disabled)
+        return a.disabled ? 1 : -1
+      return a.x - b.x
+    })
     for (var k = 0; k < list.length; k++)
       if (!known[list[k].name])
         out.push(list[k].name)
@@ -115,13 +121,13 @@ QtObject {
   }
 
   function apply(overrideName, override) {
-    var before = root.buildLines().join(" ")
     var lines = root.buildLines(overrideName, override)
     if (lines.length === 0)
       return
     var after = lines.join(" ")
-    if (before === after)
+    if (after === root.applied)
       return
+    root.applied = after
     root.evalLines(after)
     file.setText(root.buildFile(lines))
   }

@@ -33,7 +33,6 @@ hl.env("QT_QPA_PLATFORM", "wayland;xcb")
 hl.env("QT_QPA_PLATFORMTHEME", "gtk3")
 hl.env("QT_STYLE_OVERRIDE", "Fusion")
 hl.env("QT_QUICK_CONTROLS_STYLE", "Fusion")
-hl.env("SDL_VIDEODRIVER", "wayland")
 hl.env("CLUTTER_BACKEND", "wayland")
 hl.env("OZONE_PLATFORM", "wayland")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "wayland")
@@ -59,7 +58,7 @@ hl.config({
         resize_on_border = true,
 
         -- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
-        allow_tearing = false,
+        allow_tearing = true,
 
         layout = "dwindle",
     },

@@ -71,6 +71,54 @@ hl.window_rule({ match = { tag = "floating-window" }, float = true, center = tru
 -- Popped window rounding
 hl.window_rule({ match = { tag = "pop" }, rounding = 8 })
 
+---------------
+---- STEAM ----
+---------------
+
+-- Keep Steam helper windows from hanging the client
+hl.window_rule({
+    match = { class = "^(steam|Steam)$", title = "^$" },
+    stay_focused = true,
+    min_size = { 1, 1 },
+})
+
+-- Do not let Steam toasts steal focus
+hl.window_rule({
+    match = { class = "^(steam|Steam)$", title = "^(notificationtoasts)" },
+    float = true,
+    no_initial_focus = true,
+})
+
+-- Steam popups
+hl.window_rule({
+    match = {
+        class = "^(steam|Steam)$",
+        title = "^(Friends List|Steam Settings|Steam - News|Sign in to Steam|Special Offers)$",
+    },
+    float = true,
+    center = true,
+})
+
+-- Steam Big Picture
+hl.window_rule({
+    match = { class = "^(steam|Steam)$", title = "(?i).*Big Picture.*" },
+    fullscreen = true,
+})
+
+-- Steam games: full screen, skip launchers
+hl.window_rule({
+    match = {
+        initial_class = "^(steam_app_\\d+)$",
+        title = "negative:^(?i).*(Launcher|NetEase Game Security).*$",
+    },
+    fullscreen = true,
+    idle_inhibit = "always",
+    rounding = 0,
+    border_size = 0,
+    no_anim = true,
+    immediate = true,
+})
+
 -------------------------------
 ---- PICTURE-IN-PICTURE    ----
 -------------------------------
