@@ -63,11 +63,8 @@ PanelPage {
     }
   }
 
-  Text {
+  SectionHeader {
     text: "Palette"
-    color: Theme.fgDim
-    font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 2
   }
 
   Column {

@@ -40,6 +40,12 @@
           "id": "shell.hardware"
         },
         {
+          "id": "shell.graphics"
+        },
+        {
+          "id": "shell.display:bar"
+        },
+        {
           "id": "shell.audio"
         },
         {
@@ -137,6 +143,9 @@
           },
           {
             "id": "shell.hardware:info"
+          },
+          {
+            "id": "shell.graphics:info"
           }
         ]
       },

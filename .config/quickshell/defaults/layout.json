@@ -38,6 +38,9 @@
         "id": "shell.hardware"
       },
       {
+        "id": "shell.graphics"
+      },
+      {
         "id": "shell.audio"
       },
       {
@@ -130,6 +133,9 @@
         },
         {
           "id": "shell.hardware:info"
+        },
+        {
+          "id": "shell.graphics:info"
         }
       ]
     },

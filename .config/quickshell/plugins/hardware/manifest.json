@@ -1,5 +1,5 @@
 {
-  "name": "System health",
+  "name": "System stats",
   "settings": [
     {
       "key": "metric",
@@ -7,30 +7,19 @@
       "label": "Reading",
       "default": "mem",
       "options": [
-        {
-          "value": "mem",
-          "label": "Memory"
-        },
-        {
-          "value": "cpu",
-          "label": "Processor"
-        },
-        {
-          "value": "temp",
-          "label": "Temperature"
-        }
+        { "value": "mem", "label": "Memory" },
+        { "value": "cpu", "label": "Processor" },
+        { "value": "temp", "label": "Temperature" },
+        { "value": "gpu", "label": "GPU load" },
+        { "value": "gpuTemp", "label": "GPU temperature" },
+        { "value": "gpuMem", "label": "GPU memory" },
+        { "value": "gpuPower", "label": "GPU power" }
       ]
     }
   ],
   "widgets": {
-    "bar": {
-      "surface": "bar",
-      "file": "Widget.qml"
-    },
-    "info": {
-      "surface": "cc",
-      "file": "CcRow.qml"
-    }
+    "bar": { "surface": "bar", "file": "Widget.qml" },
+    "info": { "surface": "cc", "file": "CcRow.qml" }
   },
   "page": {
     "mode": "cc",

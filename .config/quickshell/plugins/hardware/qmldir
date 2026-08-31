@@ -1,1 +1,2 @@
 singleton SystemStats 1.0 SystemStats.qml
+singleton Nvidia 1.0 Nvidia.qml

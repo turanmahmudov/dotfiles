@@ -65,12 +65,9 @@ PanelPage {
     }
   }
 
-  Text {
+  SectionHeader {
     visible: sinkList.count > 0
     text: "Output device"
-    color: Theme.fgDim
-    font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 2
   }
 
   Column {
@@ -114,12 +111,9 @@ PanelPage {
     }
   }
 
-  Text {
+  SectionHeader {
     visible: sourceList.count > 0
     text: "Input device"
-    color: Theme.fgDim
-    font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 2
   }
 
   Column {

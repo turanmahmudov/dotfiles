@@ -50,11 +50,8 @@ PanelPage {
     }
   }
 
-  Text {
+  SectionHeader {
     text: "Power profile"
-    color: Theme.fgDim
-    font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 2
   }
 
   Column {

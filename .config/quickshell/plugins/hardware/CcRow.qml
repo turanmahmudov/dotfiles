@@ -8,8 +8,10 @@ InfoRow {
   property string pluginId: ""
 
   iconName: "gauge"
-  label: "System health"
+  label: "System stats"
   sublabel: SystemStats.temp >= 80 ? "Running hot" : "No warnings"
-  value: SystemStats.cpu + "% CPU"
+  value: Nvidia.awake
+    ? (SystemStats.cpu + "% CPU  ·  " + Nvidia.util + "% GPU")
+    : (SystemStats.cpu + "% CPU")
   onClicked: if (root.controller) root.controller.go(root.pluginId)
 }

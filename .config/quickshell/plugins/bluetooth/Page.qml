@@ -11,21 +11,20 @@ PanelPage {
 
   Item {
     width: parent.width
-    height: 18
+    height: 36
 
-    Text {
+    SectionHeader {
       anchors.left: parent.left
-      anchors.verticalCenter: parent.verticalCenter
+      anchors.bottom: parent.bottom
+      topPadding: 0
+      bottomPadding: 0
       text: "Devices"
-      color: Theme.fgDim
-      font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 2
     }
 
     Icon {
       id: btScanIcon
       anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
+      anchors.bottom: parent.bottom
       size: 15
       name: "refresh-cw"
       transformOrigin: Item.Center
