@@ -33,12 +33,47 @@ BarItem {
     hyprRev
     desktopEntryCount
     monName
+    monitorNames
     return computeItems()
+  }
+
+  readonly property var monitorNames: {
+    hyprRev
+    return collectMonitorNames()
+  }
+
+  function collectMonitorNames() {
+    var mons = Hypr.monitors ? Hypr.monitors.values : []
+    var names = ({})
+    for (var i = 0; i < mons.length; i++)
+      if (mons[i] && mons[i].name)
+        names[String(mons[i].name)] = true
+    return names
+  }
+
+  // A monitor that is off keeps its persistent workspaces in the settings, so
+  // one connected bar adopts them and the user still sees every workspace.
+  function resolveOrphanHost(persistent) {
+    var active = root.monitorNames
+    var configured = Object.keys(persistent).sort()
+    for (var i = 0; i < configured.length; i++)
+      if (active[configured[i]])
+        return configured[i]
+    var connected = Object.keys(active).sort()
+    return connected.length > 0 ? connected[0] : ""
   }
 
   function persistentFor(mon) {
     var p = (settings && settings.persistent) ? settings.persistent : ({})
-    return p[mon] || []
+    var own = p[mon] || []
+    if (resolveOrphanHost(p) !== mon)
+      return own
+    var out = own.slice()
+    var active = root.monitorNames
+    for (var key in p)
+      if (key !== mon && !active[key])
+        out = out.concat(p[key])
+    return out
   }
 
   function labelFor(item) {
