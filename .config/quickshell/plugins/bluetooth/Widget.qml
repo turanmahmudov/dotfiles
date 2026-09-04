@@ -12,7 +12,7 @@ BarItem {
   onRightClicked: Bt.togglePower()
 
   Row {
-    spacing: 2
+    spacing: Style.spaceHair
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter
@@ -28,7 +28,7 @@ BarItem {
       text: Bt.connectedCount
       color: Theme.accentActive
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 4
+      font.pixelSize: Style.fontCaption
     }
   }
 }

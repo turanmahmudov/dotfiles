@@ -46,7 +46,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: Style.radius
-    color: Theme.alpha(Theme.fg, 0.04)
+    color: Theme.alpha(Theme.fg, Style.cardAlpha)
     border.color: Theme.alpha(Theme.fg, 0.10)
     border.width: 1
   }
@@ -110,7 +110,7 @@ Item {
             text: screen.modelData.name
             color: Theme.fgDim
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 4
+            font.pixelSize: Style.fontCaption
           }
         }
 

@@ -35,14 +35,14 @@ PanelPage {
     Row {
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 8
+      spacing: Style.space
 
       Icon {
         anchors.verticalCenter: parent.verticalCenter
         visible: iconName.length > 0
         name: iconName
         color: Theme.fgDim
-        size: 16
+        size: Style.iconSmall
       }
 
       Text {
@@ -50,7 +50,7 @@ PanelPage {
         text: label
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 1
+        font.pixelSize: Style.fontBody
       }
     }
 
@@ -60,7 +60,7 @@ PanelPage {
       text: value
       color: valueColor
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 1
+      font.pixelSize: Style.fontBody
     }
   }
 
@@ -110,7 +110,7 @@ PanelPage {
     text: "The card is asleep"
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 1
+    font.pixelSize: Style.fontBody
   }
 
   StatRow {
@@ -181,13 +181,13 @@ PanelPage {
       anchors.left: parent.left
       anchors.leftMargin: 10
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 6
+      spacing: Style.spaceTight
 
       Icon {
         anchors.verticalCenter: parent.verticalCenter
         name: panel.processesOpen ? "arrow-down" : "chevron-right"
         color: Theme.fgDim
-        size: 14
+        size: Style.iconTiny
       }
 
       Text {
@@ -195,7 +195,7 @@ PanelPage {
         text: "GPU processes"
         color: Theme.fg
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 1
+        font.pixelSize: Style.fontBody
       }
     }
 
@@ -206,7 +206,7 @@ PanelPage {
       text: Nvidia.processes.length
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 1
+      font.pixelSize: Style.fontBody
     }
 
     MouseArea {
@@ -224,13 +224,13 @@ PanelPage {
     text: "Nothing is using the card"
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 1
+    font.pixelSize: Style.fontBody
   }
 
   Column {
     width: parent.width
     visible: Nvidia.awake && panel.processesOpen
-    spacing: 2
+    spacing: Style.spaceHair
 
     Repeater {
       model: Nvidia.processes

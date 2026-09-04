@@ -7,175 +7,158 @@ PanelPage {
   id: panel
   title: "Sound"
 
+  property bool outputOpen: false
+  property bool inputOpen: false
+
+  readonly property int appCount: playbackList.count + recordList.count
+
   function resolveDeviceName(node) {
     return node ? (node.description || node.nickname || node.name || "Device") : ""
   }
 
-  Item {
-    width: parent.width
-    height: 24
-
-    Icon {
-      id: outIcon
-      anchors.left: parent.left
-      anchors.verticalCenter: parent.verticalCenter
-      name: Icons.volume(Audio.muted, Audio.volume)
-      color: Audio.muted ? Theme.fgDim : Theme.fg
-      MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: Audio.toggleMute()
-      }
-    }
-
-    Slider {
-      anchors.left: outIcon.right
-      anchors.leftMargin: 10
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      value: Audio.volume
-      onMoved: (v) => Audio.setVolume(v)
-    }
+  // The description carries the whole controller name, which is too long for a
+  // one line summary. The nickname is the part that names the device.
+  function resolveShortDeviceName(node) {
+    return node ? (node.nickname || node.description || node.name || "Device") : ""
   }
 
-  Item {
-    width: parent.width
-    height: 24
-
-    Icon {
-      id: inIcon
-      anchors.left: parent.left
-      anchors.verticalCenter: parent.verticalCenter
-      name: Audio.micMuted ? "mic-off" : "mic"
-      color: Audio.micMuted ? Theme.fgDim : Theme.fg
-      MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: Audio.toggleMicMute()
-      }
-    }
-
-    Slider {
-      anchors.left: inIcon.right
-      anchors.leftMargin: 10
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      value: Audio.micVolume
-      onMoved: (v) => Audio.setMicVolume(v)
-    }
+  function formatAppCount(n) {
+    if (n === 0)
+      return "None"
+    return n === 1 ? "1 app" : n + " apps"
   }
 
-  SectionHeader {
-    visible: sinkList.count > 0
-    text: "Output device"
+  SliderRow {
+    width: parent.width
+    iconName: Icons.volume(Audio.muted, Audio.volume)
+    iconIsButton: true
+    caption: panel.resolveShortDeviceName(Audio.sinkNode)
+    hasDetail: sinkList.count > 1
+    detailOpen: panel.outputOpen
+    value: Audio.volume
+    onIconClicked: Audio.toggleMute()
+    onMoved: (v) => Audio.setVolume(v)
+    onDetailRequested: panel.outputOpen = !panel.outputOpen
   }
 
-  Column {
-    width: parent.width
-    spacing: 4
+  Reveal {
+    open: panel.outputOpen
 
     Repeater {
       id: sinkList
-      model: Audio.listSinks()
+      model: Audio.sinks
 
-      delegate: Rectangle {
-        id: sinkRow
+      delegate: ListRow {
         required property var modelData
-        readonly property bool active: Audio.sinkNode && modelData && Audio.sinkNode.id === modelData.id
-        width: parent.width
-        height: 30
-        radius: Style.radiusSmall
-        color: active ? Theme.alpha(Theme.accent, sinkArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, sinkArea.containsMouse ? 0.12 : 0.06)
-
-        Text {
-          anchors.left: parent.left
-          anchors.right: parent.right
-          anchors.leftMargin: 10
-          anchors.rightMargin: 10
-          anchors.verticalCenter: parent.verticalCenter
-          elide: Text.ElideRight
-          text: panel.resolveDeviceName(sinkRow.modelData)
-          color: sinkRow.active ? Theme.accent : Theme.fg
-          font.family: Style.fontFamily
-          font.pixelSize: Style.fontSize - 1
-        }
-
-        MouseArea {
-          anchors.fill: parent
-          id: sinkArea
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: Audio.setDefaultSink(sinkRow.modelData)
+        label: panel.resolveDeviceName(modelData)
+        active: Audio.sinkNode && modelData && Audio.sinkNode.id === modelData.id
+        onClicked: {
+          Audio.setDefaultSink(modelData)
+          panel.outputOpen = false
         }
       }
     }
   }
 
-  SectionHeader {
-    visible: sourceList.count > 0
-    text: "Input device"
+  SliderRow {
+    width: parent.width
+    iconName: Audio.micMuted ? "mic-off" : "mic"
+    iconIsButton: true
+    caption: panel.resolveShortDeviceName(Audio.sourceNode)
+    hasDetail: sourceList.count > 1
+    detailOpen: panel.inputOpen
+    value: Audio.micVolume
+    onIconClicked: Audio.toggleMicMute()
+    onMoved: (v) => Audio.setMicVolume(v)
+    onDetailRequested: panel.inputOpen = !panel.inputOpen
   }
 
-  Column {
-    width: parent.width
-    spacing: 4
+  Reveal {
+    open: panel.inputOpen
 
     Repeater {
       id: sourceList
-      model: Audio.listSources()
+      model: Audio.sources
 
-      delegate: Rectangle {
-        id: srcRow
+      delegate: ListRow {
         required property var modelData
-        readonly property bool active: Audio.sourceNode && modelData && Audio.sourceNode.id === modelData.id
-        width: parent.width
-        height: 30
-        radius: Style.radiusSmall
-        color: active ? Theme.alpha(Theme.accent, srcArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, srcArea.containsMouse ? 0.12 : 0.06)
-
-        Text {
-          anchors.left: parent.left
-          anchors.right: parent.right
-          anchors.leftMargin: 10
-          anchors.rightMargin: 10
-          anchors.verticalCenter: parent.verticalCenter
-          elide: Text.ElideRight
-          text: panel.resolveDeviceName(srcRow.modelData)
-          color: srcRow.active ? Theme.accent : Theme.fg
-          font.family: Style.fontFamily
-          font.pixelSize: Style.fontSize - 1
-        }
-
-        MouseArea {
-          anchors.fill: parent
-          id: srcArea
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: Audio.setDefaultSource(srcRow.modelData)
+        label: panel.resolveDeviceName(modelData)
+        active: Audio.sourceNode && modelData && Audio.sourceNode.id === modelData.id
+        onClicked: {
+          Audio.setDefaultSource(modelData)
+          panel.inputOpen = false
         }
       }
     }
   }
 
-  Rectangle {
-    width: parent.width
-    height: 34
-    radius: Style.radiusSmall
-    color: pavuArea.containsMouse ? Theme.alpha(Theme.fg, 0.12) : Theme.alpha(Theme.fg, 0.06)
+  CollapsibleSection {
+    title: "Applications"
+    value: panel.formatAppCount(panel.appCount)
 
     Text {
-      anchors.centerIn: parent
-      text: "Sound settings"
-      color: Theme.fg
+      width: parent.width
+      wrapMode: Text.WordWrap
+      visible: panel.appCount === 0
+      text: "No application is using audio."
+      color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 1
+      font.pixelSize: Style.fontBody
     }
 
-    MouseArea {
-      id: pavuArea
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
+    SectionHeader {
+      visible: playbackList.count > 0
+      topPadding: 4
+      text: "Playing"
+    }
+
+    Column {
+      width: parent.width
+      spacing: Style.space
+
+      Repeater {
+        id: playbackList
+        model: Audio.playbackStreams
+
+        delegate: StreamRow {
+          required property var modelData
+          node: modelData
+          devices: Audio.sinks
+        }
+      }
+    }
+
+    SectionHeader {
+      visible: recordList.count > 0
+      topPadding: 4
+      text: "Recording"
+    }
+
+    Column {
+      width: parent.width
+      spacing: Style.space
+
+      Repeater {
+        id: recordList
+        model: Audio.recordStreams
+
+        delegate: StreamRow {
+          required property var modelData
+          node: modelData
+          devices: Audio.sources
+        }
+      }
+    }
+  }
+
+  Item {
+    width: parent.width
+    height: Style.panelSpacing + 36
+
+    WideButton {
+      anchors.bottom: parent.bottom
+      width: parent.width
+      label: "Sound settings"
       onClicked: {
         Quickshell.execDetached(["pavucontrol"])
         panel.requestClose()

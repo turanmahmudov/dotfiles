@@ -51,13 +51,13 @@ Column {
             anchors.left: parent.left
             anchors.leftMargin: 8 + list.depth * 12
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 6
+            spacing: Style.spaceTight
 
             Icon {
               visible: entry.modelData.buttonType !== QsMenuButtonType.None && entry.modelData.checkState === Qt.Checked
               anchors.verticalCenter: parent.verticalCenter
               name: "check-check"
-              size: 13
+              size: Style.iconTiny
               color: Theme.fg
             }
 
@@ -83,7 +83,7 @@ Column {
             text: entry.modelData.text
             color: entry.modelData.enabled ? Theme.fg : Theme.fgDim
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 1
+            font.pixelSize: Style.fontBody
           }
 
           Icon {
@@ -93,7 +93,7 @@ Column {
             anchors.rightMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             name: "chevron-right"
-            size: 14
+            size: Style.iconTiny
             color: Theme.fgDim
             rotation: entry.expanded ? 90 : 0
           }

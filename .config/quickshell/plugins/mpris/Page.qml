@@ -60,13 +60,9 @@ PanelPage {
     onTriggered: panel.syncStateFromPlayer()
   }
 
-  Text {
+  Placeholder {
     visible: !panel.hasPlayer
-    width: parent.width
     text: "No media playing"
-    color: Theme.fgDim
-    font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize
   }
 
   Item {
@@ -87,7 +83,7 @@ PanelPage {
         visible: art.status !== Image.Ready
         name: "music"
         color: Theme.fgDim
-        size: 22
+        size: Style.iconMedium
       }
 
       Image {
@@ -108,7 +104,7 @@ PanelPage {
       anchors.leftMargin: 12
       anchors.right: parent.right
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 3
+      spacing: Style.spaceHair
 
       Text {
         width: parent.width
@@ -116,7 +112,7 @@ PanelPage {
         text: panel.hasPlayer ? (panel.player.trackTitle || "Unknown title") : ""
         color: Theme.fg
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize
+        font.pixelSize: Style.fontTitle
         font.bold: true
       }
 
@@ -133,7 +129,7 @@ PanelPage {
         }
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 2
+        font.pixelSize: Style.fontBody
       }
     }
   }
@@ -150,7 +146,7 @@ PanelPage {
       text: panel.formatTime(panel.posSec)
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 3
+      font.pixelSize: Style.fontCaption
     }
 
     Text {
@@ -160,7 +156,7 @@ PanelPage {
       text: panel.hasPlayer ? panel.formatTime(panel.player.length) : "0:00"
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 3
+      font.pixelSize: Style.fontCaption
     }
 
     Slider {
@@ -246,7 +242,7 @@ PanelPage {
       anchors.verticalCenter: parent.verticalCenter
       name: "volume-2"
       color: Theme.fg
-      size: 16
+      size: Style.iconSmall
     }
 
     Slider {
@@ -262,7 +258,7 @@ PanelPage {
   Flow {
     visible: panel.players.length > 1
     width: parent.width
-    spacing: 6
+    spacing: Style.spaceTight
 
     Repeater {
       model: panel.players
@@ -274,7 +270,7 @@ PanelPage {
         height: 26
         width: pillText.implicitWidth + 20
         radius: Style.radiusSmall
-        color: pill.active ? Theme.alpha(Theme.accent, pillArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, pillArea.containsMouse ? 0.12 : 0.06)
+        color: pill.active ? Theme.alpha(Theme.accent, pillArea.containsMouse ? Style.cardActiveHoverAlpha : Style.cardActiveAlpha) : Theme.alpha(Theme.fg, pillArea.containsMouse ? Style.cardHoverAlpha : Style.cardAlpha)
 
         Text {
           id: pillText
@@ -282,7 +278,7 @@ PanelPage {
           text: pill.modelData ? (pill.modelData.identity || "Player") : "Player"
           color: pill.active ? Theme.accent : Theme.fg
           font.family: Style.fontFamily
-          font.pixelSize: Style.fontSize - 2
+          font.pixelSize: Style.fontBody
         }
 
         MouseArea {

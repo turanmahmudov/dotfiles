@@ -12,7 +12,7 @@ Rectangle {
   implicitHeight: 56
   radius: Style.radius
   color: Theme.alpha(Theme.bg, Style.surfaceAlpha)
-  border.color: Theme.alpha(Theme.fg, 0.15)
+  border.color: Theme.alpha(Theme.fg, Style.surfaceBorderAlpha)
   border.width: 1
 
   MouseArea {
@@ -22,7 +22,7 @@ Rectangle {
   Row {
     id: row
     anchors.centerIn: parent
-    spacing: 8
+    spacing: Style.space
 
     Repeater {
       model: [
@@ -45,7 +45,7 @@ Rectangle {
         Icon {
           anchors.centerIn: parent
           name: modeBtn.modelData.icon
-          size: 22
+          size: Style.iconMedium
           color: modeBtn.selected ? Theme.accent : Theme.fg
         }
 
@@ -83,11 +83,11 @@ Rectangle {
 
       Row {
         anchors.centerIn: parent
-        spacing: 4
+        spacing: Style.spaceTight
         Icon {
           anchors.verticalCenter: parent.verticalCenter
           name: "timer"
-          size: 18
+          size: Style.iconMedium
           color: delayChip.on ? Theme.accent : Theme.fg
         }
         Text {
@@ -95,7 +95,7 @@ Rectangle {
           text: Screenshot.delaySeconds > 0 ? Screenshot.delaySeconds + "s" : "off"
           color: delayChip.on ? Theme.accent : Theme.fg
           font.family: Style.fontFamily
-          font.pixelSize: Style.fontSize
+          font.pixelSize: Style.fontTitle
         }
       }
 
@@ -133,7 +133,7 @@ Rectangle {
       text: bar.tipText
       color: Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 1
+      font.pixelSize: Style.fontBody
     }
   }
 }

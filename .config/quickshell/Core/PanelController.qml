@@ -78,7 +78,10 @@ QtObject {
     }
   }
 
-  function open(id, anchor, payloadJson) {
+  // keepTrail marks navigation inside the panel, which stacks onto the trail.
+  // A request from a bar widget, a keybind or IPC starts a fresh trail instead,
+  // or the back arrow would walk into whatever happened to be open before.
+  function open(id, anchor, payloadJson, keepTrail) {
     if (!controller.resolvePageUrl(id)) {
       if (PluginRegistry.revision === 0) {
         controller.queuedPage = id
@@ -90,10 +93,18 @@ QtObject {
       return "unknown"
     }
     controller.overlaysShouldClose()
-    if (controller.page.length > 0 && controller.page !== id) {
-      var trail = controller.history
-      trail.push({ "id": controller.page, "payload": controller.payload })
-      controller.history = trail
+    if (keepTrail) {
+      if (controller.page.length > 0 && controller.page !== id) {
+        var trail = controller.history
+        trail.push({ "id": controller.page, "payload": controller.payload })
+        controller.history = trail
+      }
+    } else {
+      // A Control Center page goes back up to the Control Center. A standalone
+      // page shows no back arrow, so it needs no trail at all.
+      controller.history = (id !== controller.homePage && controller.resolvePageMode(id) === "cc")
+        ? [{ "id": controller.homePage, "payload": ({}) }]
+        : []
     }
     controller.payload = parsePayload(payloadJson)
     if (anchor)
@@ -104,12 +115,12 @@ QtObject {
 
   // Navigate inside the panel, keeping the surface where the user opened it.
   function go(id) {
-    return open(id, null, "")
+    return open(id, null, "", true)
   }
 
   function back() {
     if (controller.history.length === 0)
-      return open(controller.homePage, null, "")
+      return open(controller.homePage, null, "", false)
     var trail = controller.history
     var previous = trail.pop()
     controller.history = trail

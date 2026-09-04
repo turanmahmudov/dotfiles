@@ -13,6 +13,11 @@ Item {
 
   signal clicked()
 
+  activeFocusOnTab: true
+  Keys.onReturnPressed: root.clicked()
+  Keys.onEnterPressed: root.clicked()
+  Keys.onSpacePressed: root.clicked()
+
   // Derived for rows written straight into a list, and set by the host when the
   // row sits inside a loader that hides its siblings.
   property bool isFirst: parent && parent.children.length > 0 && parent.children[0] === root
@@ -27,12 +32,18 @@ Item {
   // squares off outside them.
   Rectangle {
     anchors.fill: parent
-    visible: area.containsMouse
+    opacity: area.containsMouse ? 1 : 0
     topLeftRadius: root.isFirst ? Style.radiusSmall : 0
     topRightRadius: root.isFirst ? Style.radiusSmall : 0
     bottomLeftRadius: root.isLast ? Style.radiusSmall : 0
     bottomRightRadius: root.isLast ? Style.radiusSmall : 0
-    color: Theme.alpha(Theme.fg, 0.06)
+    color: Theme.alpha(Theme.fg, Style.cardHoverAlpha)
+
+    Behavior on opacity {
+      NumberAnimation {
+        duration: Style.animFast
+      }
+    }
   }
 
   Rectangle {
@@ -41,7 +52,7 @@ Item {
     anchors.top: parent.top
     height: 1
     visible: !root.isFirst
-    color: Theme.alpha(Theme.fg, 0.12)
+    color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
   }
 
   Icon {
@@ -61,7 +72,7 @@ Item {
     text: root.value
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 5
+    font.pixelSize: Style.fontMicro
   }
 
   Icon {
@@ -69,7 +80,7 @@ Item {
     anchors.right: parent.right
     anchors.rightMargin: 8
     anchors.verticalCenter: parent.verticalCenter
-    size: 13
+    size: Style.iconTiny
     visible: root.hasChevron
     name: "chevron-right"
     color: area.containsMouse ? Theme.fg : Theme.fgDim
@@ -81,7 +92,7 @@ Item {
     anchors.right: valueLabel.left
     anchors.rightMargin: 8
     anchors.verticalCenter: parent.verticalCenter
-    spacing: 2
+    spacing: Style.spaceHair
 
     Text {
       width: parent.width
@@ -89,7 +100,7 @@ Item {
       text: root.label
       color: Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 4
+      font.pixelSize: Style.fontCaption
       font.bold: true
     }
 
@@ -100,9 +111,11 @@ Item {
       text: root.sublabel
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 5
+      font.pixelSize: Style.fontMicro
     }
   }
+
+  FocusRing {}
 
   MouseArea {
     id: area

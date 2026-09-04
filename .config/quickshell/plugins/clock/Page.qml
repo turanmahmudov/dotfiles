@@ -43,7 +43,7 @@ PanelPage {
     text: Qt.formatDate(panel.today, "dddd, d MMMM")
     color: Theme.accent
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize
+    font.pixelSize: Style.fontTitle
     font.bold: true
   }
 
@@ -65,7 +65,7 @@ PanelPage {
       text: Qt.formatDate(new Date(panel.viewYear, panel.viewMonth, 1), "MMMM yyyy")
       color: titleArea.containsMouse ? Theme.accent : Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize
+      font.pixelSize: Style.fontTitle
       font.bold: true
 
       MouseArea {
@@ -95,11 +95,11 @@ PanelPage {
 
     Column {
       id: gridsCol
-      spacing: 4
+      spacing: Style.spaceTight
 
       Grid {
         columns: 7
-        spacing: 4
+        spacing: Style.spaceTight
 
         Repeater {
           model: 7
@@ -110,7 +110,7 @@ PanelPage {
             text: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"][index]
             color: Theme.accent
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 2
+            font.pixelSize: Style.fontBody
             font.bold: true
           }
         }
@@ -118,7 +118,7 @@ PanelPage {
 
       Grid {
         columns: 7
-        spacing: 4
+        spacing: Style.spaceTight
 
         Repeater {
           model: panel.cells
@@ -144,7 +144,7 @@ PanelPage {
               text: cell.modelData.day
               color: cell.isToday ? Theme.bg : (cell.modelData.current ? Theme.fg : Theme.fgDim)
               font.family: Style.fontFamily
-              font.pixelSize: Style.fontSize - 1
+              font.pixelSize: Style.fontBody
               font.bold: cell.isToday
             }
           }

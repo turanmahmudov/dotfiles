@@ -189,7 +189,7 @@ Item {
         text: widget.widgetLabel
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 5
+        font.pixelSize: Style.fontMicro
       }
     }
 
@@ -220,7 +220,7 @@ Item {
 
       Icon {
         anchors.centerIn: parent
-        size: 9
+        size: Style.iconTiny
         name: "x"
         color: removeArea.containsMouse ? Theme.bg : Theme.fgDim
       }
@@ -250,7 +250,7 @@ Item {
     text: zone.title
     color: zone.dropIndex >= 0 ? Theme.accent : Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 5
+    font.pixelSize: Style.fontMicro
   }
 
   Row {

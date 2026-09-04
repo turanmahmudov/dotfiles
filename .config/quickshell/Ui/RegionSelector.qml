@@ -34,7 +34,7 @@ Item {
     visible: root.selecting && root.selW > 20
     color: Theme.alpha(Theme.bg, 0.85)
     radius: Style.radiusSmall
-    border.color: Theme.alpha(Theme.fg, 0.15)
+    border.color: Theme.alpha(Theme.fg, Style.surfaceBorderAlpha)
     border.width: 1
     width: dims.implicitWidth + 16
     height: dims.implicitHeight + 8
@@ -46,7 +46,7 @@ Item {
       text: Math.round(root.selW) + " × " + Math.round(root.selH)
       color: Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 2
+      font.pixelSize: Style.fontBody
     }
   }
 

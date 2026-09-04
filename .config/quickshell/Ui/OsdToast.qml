@@ -47,17 +47,17 @@ PanelWindow {
     anchors.fill: parent
     radius: Style.radius
     color: Theme.alpha(Theme.bg, Style.surfaceAlpha)
-    border.color: Theme.alpha(Theme.fg, 0.15)
+    border.color: Theme.alpha(Theme.fg, Style.surfaceBorderAlpha)
     border.width: 1
 
     Row {
       anchors.fill: parent
       anchors.margins: 14
-      spacing: 12
+      spacing: Style.spaceLoose
 
       Icon {
         anchors.verticalCenter: parent.verticalCenter
-        size: 22
+        size: Style.iconMedium
         name: osd.iconName
         color: Theme.fg
       }

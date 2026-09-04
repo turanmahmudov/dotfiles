@@ -17,6 +17,11 @@ Item {
   signal triggered()
   signal detailRequested()
 
+  activeFocusOnTab: true
+  Keys.onReturnPressed: root.triggered()
+  Keys.onEnterPressed: root.triggered()
+  Keys.onSpacePressed: root.triggered()
+
   readonly property bool showsDetail: hasDetail && !compact
   readonly property int detailWidth: 30
 
@@ -27,13 +32,21 @@ Item {
     anchors.fill: parent
     radius: Style.radiusSmall
     color: root.active
-      ? Theme.alpha(Theme.accent, (root.compact && smallArea.containsMouse) ? 0.22 : 0.16)
-      : Theme.alpha(Theme.fg, root.compact ? (smallArea.containsMouse ? 0.09 : 0.035) : 0.045)
+      ? Theme.alpha(Theme.accent, (root.compact && smallArea.containsMouse) ? Style.cardActiveHoverAlpha : Style.cardActiveAlpha)
+      : Theme.alpha(Theme.fg, root.compact ? (smallArea.containsMouse ? Style.cardHoverAlpha : Style.cardAlpha) : Style.cardAlpha)
     border.width: 1
     border.color: root.active
-      ? Theme.alpha(Theme.accent, root.compact ? 0.28 : 0.3)
-      : Theme.alpha(Theme.fg, 0.12)
+      ? Theme.alpha(Theme.accent, Style.cardActiveBorderAlpha)
+      : Theme.alpha(Theme.fg, Style.cardBorderAlpha)
+
+    Behavior on color {
+      ColorAnimation {
+        duration: Style.animFast
+      }
+    }
   }
+
+  FocusRing {}
 
   Item {
     id: big
@@ -52,8 +65,14 @@ Item {
       anchors.bottomMargin: 1
       topLeftRadius: Style.radiusSmall
       bottomLeftRadius: Style.radiusSmall
-      visible: bigArea.containsMouse
-      color: Theme.alpha(Theme.fg, 0.075)
+      opacity: bigArea.containsMouse ? 1 : 0
+      color: Theme.alpha(Theme.fg, Style.cardHoverAlpha)
+
+      Behavior on opacity {
+        NumberAnimation {
+          duration: Style.animFast
+        }
+      }
     }
 
     Rectangle {
@@ -79,7 +98,7 @@ Item {
       anchors.right: parent.right
       anchors.rightMargin: 6
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 2
+      spacing: Style.spaceHair
 
       Text {
         width: parent.width
@@ -87,7 +106,7 @@ Item {
         text: root.label
         color: root.active ? Theme.accent : Theme.fg
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 3
+        font.pixelSize: Style.fontCaption
         font.bold: true
       }
 
@@ -98,7 +117,7 @@ Item {
         text: root.sublabel
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 5
+        font.pixelSize: Style.fontMicro
       }
     }
 
@@ -127,7 +146,7 @@ Item {
       anchors.bottomMargin: 1
       topRightRadius: Style.radiusSmall
       bottomRightRadius: Style.radiusSmall
-      color: detailArea.containsMouse ? Theme.alpha(Theme.fg, 0.1) : Theme.alpha(Theme.bgAlt, 0.28)
+      color: detailArea.containsMouse ? Theme.alpha(Theme.fg, Style.cardHoverAlpha) : Theme.alpha(Theme.bgAlt, 0.28)
     }
 
     Rectangle {
@@ -136,12 +155,12 @@ Item {
       anchors.bottom: parent.bottom
       anchors.margins: 1
       width: 1
-      color: Theme.alpha(Theme.fg, 0.12)
+      color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
     }
 
     Icon {
       anchors.centerIn: parent
-      size: 14
+      size: Style.iconTiny
       name: "chevron-right"
       color: detailArea.containsMouse ? Theme.fg : Theme.fgDim
     }
@@ -166,7 +185,7 @@ Item {
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter
-      size: 16
+      size: Style.iconSmall
       name: root.iconName
       color: root.active ? Theme.accent : Theme.fg
     }
@@ -178,7 +197,7 @@ Item {
       text: root.label
       color: root.active ? Theme.accent : Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 5
+      font.pixelSize: Style.fontMicro
     }
   }
 

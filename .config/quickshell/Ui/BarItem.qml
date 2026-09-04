@@ -37,6 +37,11 @@ Item {
     onTriggered: if (root.hovered && root.tooltipText.length > 0) barTip.visible = true
   }
 
+  activeFocusOnTab: root.interactive
+  Keys.onReturnPressed: root.clicked(null)
+  Keys.onEnterPressed: root.clicked(null)
+  Keys.onSpacePressed: root.clicked(null)
+
   signal clicked(var mouse)
   signal rightClicked(var mouse)
   signal scrolledUp
@@ -59,11 +64,26 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: Style.radiusSmall
-    visible: root.interactive && (root.hovered || root.panelOpen)
-    color: Theme.alpha(Theme.fg, root.panelOpen ? 0.15 : 0.09)
+    opacity: (root.interactive && (root.hovered || root.panelOpen)) ? 1 : 0
+    color: Theme.alpha(Theme.fg, root.panelOpen ? Style.cardActiveAlpha : Style.cardHoverAlpha)
     border.width: 1
-    border.color: Theme.alpha(Theme.fg, root.panelOpen ? 0.2 : 0.12)
+    border.color: Theme.alpha(Theme.fg, root.panelOpen
+      ? Style.cardActiveBorderAlpha : Style.cardBorderAlpha)
+
+    Behavior on opacity {
+      NumberAnimation {
+        duration: Style.animFast
+      }
+    }
+
+    Behavior on color {
+      ColorAnimation {
+        duration: Style.animFast
+      }
+    }
   }
+
+  FocusRing {}
 
   Row {
     id: contentRow

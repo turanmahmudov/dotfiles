@@ -30,14 +30,14 @@ PanelPage {
     text: Notifications.dnd ? "Do not disturb" : "No notifications"
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 1
+    font.pixelSize: Style.fontBody
   }
 
   Column {
     id: contentCol
     visible: Notifications.groups.length > 0
     width: parent.width
-    spacing: 8
+    spacing: Style.space
 
     Repeater {
       model: Notifications.groups
@@ -46,7 +46,7 @@ PanelPage {
         id: groupCol
         required property var modelData
         width: contentCol.width
-        spacing: 6
+        spacing: Style.spaceTight
 
         readonly property string groupKey: modelData.key
         readonly property bool collapsible: modelData.count > 1
@@ -74,7 +74,7 @@ PanelPage {
           Row {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 4
+            spacing: Style.spaceTight
             z: 1
 
             Icon {
@@ -101,7 +101,7 @@ PanelPage {
               text: groupCol.modelData.appName + (groupCol.collapsible ? (" · " + groupCol.modelData.count) : "")
               color: headerArea.containsMouse ? Theme.fg : Theme.fgDim
               font.family: Style.fontFamily
-              font.pixelSize: Style.fontSize - 2
+              font.pixelSize: Style.fontBody
               font.bold: true
             }
           }
@@ -110,7 +110,7 @@ PanelPage {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             z: 1
-            size: 14
+            size: Style.iconTiny
             name: "trash-2"
             color: groupClear.containsMouse ? Theme.urgent : Theme.fgDim
             MouseArea {
@@ -144,7 +144,7 @@ PanelPage {
             height: parent.height + Style.radius + groupCol.spacing
             radius: Style.radius
             color: peekArea.containsMouse ? Theme.alpha(Theme.bgAlt2, Style.surfaceAlpha) : Theme.alpha(Theme.bgAlt, Style.surfaceAlpha)
-            border.color: Theme.alpha(Theme.fg, 0.12)
+            border.color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
             border.width: 1
           }
 
@@ -153,7 +153,7 @@ PanelPage {
             text: groupCol.hiddenCount + " more"
             color: peekArea.containsMouse ? Theme.fg : Theme.fgDim
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 4
+            font.pixelSize: Style.fontCaption
           }
 
           MouseArea {
@@ -168,7 +168,7 @@ PanelPage {
         Column {
           width: parent.width
           visible: groupCol.expanded
-          spacing: 6
+          spacing: Style.spaceTight
 
           Repeater {
             model: groupCol.older

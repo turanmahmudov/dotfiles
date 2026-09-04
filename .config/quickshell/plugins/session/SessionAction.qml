@@ -32,11 +32,11 @@ Rectangle {
 
   Column {
     anchors.centerIn: parent
-    spacing: 3
+    spacing: Style.spaceHair
 
     Icon {
       anchors.horizontalCenter: parent.horizontalCenter
-      size: 16
+      size: Style.iconSmall
       name: root.iconName
       color: area.containsMouse
         ? (root.danger ? Theme.error : Theme.fg)
@@ -48,7 +48,7 @@ Rectangle {
       text: root.label
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 6
+      font.pixelSize: Style.fontMicro
     }
   }
 

@@ -13,16 +13,9 @@ PanelPage {
     panel.requestClose()
   }
 
-  Text {
+  Placeholder {
     visible: !Updates.hasUpdates
-    width: parent.width
-    horizontalAlignment: Text.AlignHCenter
-    topPadding: 10
-    bottomPadding: 10
     text: "No updates"
-    color: Theme.fgDim
-    font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 1
   }
 
   Text {
@@ -32,7 +25,7 @@ PanelPage {
     text: Updates.tooltip
     color: Theme.fg
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 1
+    font.pixelSize: Style.fontBody
   }
 
   WideButton {

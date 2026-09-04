@@ -13,7 +13,7 @@ BarItem {
   ].filter(function (s) { return s.length > 0 }).join("  ·  ")
 
   Row {
-    spacing: 6
+    spacing: Style.spaceTight
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter

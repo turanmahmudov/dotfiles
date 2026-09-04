@@ -27,7 +27,7 @@ Column {
     return Math.round((root.minimum + steps * root.stepSize) * 10000) / 10000
   }
 
-  spacing: 5
+  spacing: Style.spaceTight
 
   Item {
     width: parent.width
@@ -42,7 +42,7 @@ Column {
       text: root.label
       color: Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 3
+      font.pixelSize: Style.fontCaption
       font.bold: true
     }
 
@@ -105,13 +105,13 @@ Column {
       text: root.value !== undefined ? String(root.value) : ""
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 4
+      font.pixelSize: Style.fontCaption
     }
   }
 
   Column {
     width: parent.width
-    spacing: 5
+    spacing: Style.spaceTight
     visible: root.type === "choice"
 
     Repeater {
@@ -133,7 +133,7 @@ Column {
     text: "Field type " + root.type + " has no editor yet."
     color: Theme.warning
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 5
+    font.pixelSize: Style.fontMicro
   }
 
   Text {
@@ -143,6 +143,6 @@ Column {
     text: root.field.hint ? root.field.hint : ""
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 5
+    font.pixelSize: Style.fontMicro
   }
 }

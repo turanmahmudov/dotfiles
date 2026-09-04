@@ -10,7 +10,7 @@ BarItem {
   onClicked: openPanel()
 
   Row {
-    spacing: 6
+    spacing: Style.spaceTight
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter
@@ -23,7 +23,7 @@ BarItem {
       text: Updates.count
       color: Theme.warning
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize
+      font.pixelSize: Style.fontTitle
     }
   }
 }

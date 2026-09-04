@@ -29,24 +29,24 @@ PanelPage {
 
   Row {
     width: parent.width
-    spacing: 10
+    spacing: Style.space
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter
-      size: 26
+      size: Style.iconLarge
       name: Icons.wifi(Network.state, Network.signalStrength)
       color: Network.state === "disconnected" ? Theme.fgDim : Theme.accent
     }
 
     Column {
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 2
+      spacing: Style.spaceHair
 
       Text {
         text: Network.state === "ethernet" ? "Ethernet" : (Network.state === "wifi" ? Network.ssid : "Disconnected")
         color: Theme.fg
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize
+        font.pixelSize: Style.fontTitle
         font.bold: true
       }
 
@@ -55,19 +55,20 @@ PanelPage {
         text: Network.ipAddress
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 3
+        font.pixelSize: Style.fontCaption
       }
     }
   }
 
   Item {
     width: parent.width
-    height: 36
+    height: netHeader.implicitHeight
 
     SectionHeader {
+      id: netHeader
       anchors.left: parent.left
-      anchors.bottom: parent.bottom
-      topPadding: 0
+      anchors.top: parent.top
+      topPadding: Style.space
       bottomPadding: 0
       text: "Networks"
     }
@@ -76,7 +77,7 @@ PanelPage {
       id: netScanIcon
       anchors.right: parent.right
       anchors.bottom: parent.bottom
-      size: 15
+      size: Style.iconSmall
       name: "refresh-cw"
       transformOrigin: Item.Center
       color: (netScan.containsMouse || Network.scanning) ? Theme.accent : Theme.fgDim
@@ -101,9 +102,15 @@ PanelPage {
     }
   }
 
+  Placeholder {
+    visible: netList.count === 0
+    busy: Network.scanning
+    text: Network.scanning ? "Scanning…" : "No networks found"
+  }
+
   Column {
     width: parent.width
-    spacing: 4
+    spacing: Style.spaceTight
 
     Repeater {
       id: netList
@@ -114,84 +121,31 @@ PanelPage {
         required property var modelData
         readonly property bool secured: Network.isSecured(modelData)
         width: parent.width
-        spacing: 4
+        spacing: Style.spaceTight
 
-        Rectangle {
-          width: parent.width
-          height: 32
-          radius: Style.radiusSmall
-          color: netRow.modelData.connected ? Theme.alpha(Theme.accent, netRowArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, netRowArea.containsMouse ? 0.12 : 0.06)
-
-          Icon {
-            id: sigIcon
-            anchors.left: parent.left
-            anchors.leftMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            size: 16
-            name: Icons.wifi("wifi", Math.round(netRow.modelData.signalStrength * 100))
-            color: netRow.modelData.connected ? Theme.accent : Theme.fg
+        ListRow {
+          iconName: Icons.wifi("wifi", Math.round(netRow.modelData.signalStrength * 100))
+          label: netRow.modelData.name
+          active: netRow.modelData.connected
+          value: {
+            if (netRow.modelData.stateChanging)
+              return "…"
+            if (netRow.modelData.connected)
+              return "Connected"
+            return netRow.modelData.known ? "Saved" : ""
           }
-
-          Text {
-            anchors.left: sigIcon.right
-            anchors.leftMargin: 8
-            anchors.right: stateText.left
-            anchors.verticalCenter: parent.verticalCenter
-            elide: Text.ElideRight
-            text: netRow.modelData.name
-            color: netRow.modelData.connected ? Theme.accent : Theme.fg
-            font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 1
-          }
-
-          Text {
-            id: stateText
-            anchors.right: lockIcon.left
-            anchors.rightMargin: 6
-            anchors.verticalCenter: parent.verticalCenter
-            text: {
-              if (netRow.modelData.stateChanging)
-                return "…"
-              if (netRow.modelData.connected)
-                return "Connected"
-              return netRow.modelData.known ? "Saved" : ""
-            }
-            color: Theme.fgDim
-            font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 3
-          }
-
-          Icon {
-            id: lockIcon
-            anchors.right: parent.right
-            anchors.rightMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            size: 12
-            visible: netRow.secured
-            name: "shield"
-            color: Theme.fgDim
-          }
-
-          MouseArea {
-            id: netRowArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-            onClicked: (m) => {
-              if (m.button === Qt.RightButton && netRow.modelData.known)
-                Network.forget(netRow.modelData)
-              else
-                panel.activate(netRow.modelData)
-            }
-          }
+          valueColor: Theme.fgDim
+          valueIconName: netRow.secured ? "shield" : ""
+          valueIconColor: Theme.fgDim
+          onClicked: panel.activate(netRow.modelData)
+          onRightClicked: if (netRow.modelData.known) Network.forget(netRow.modelData)
         }
 
         Rectangle {
           width: parent.width
           height: 34
           radius: Style.radiusSmall
-          color: Theme.alpha(Theme.fg, 0.06)
+          color: Theme.alpha(Theme.fg, Style.cardAlpha)
           visible: panel.passwordSsid === netRow.modelData.name
 
           TextInput {
@@ -204,7 +158,7 @@ PanelPage {
             echoMode: TextInput.Password
             color: Theme.fg
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 1
+            font.pixelSize: Style.fontBody
             clip: true
             focus: parent.visible
             onVisibleChanged: if (visible) forceActiveFocus()
@@ -229,7 +183,7 @@ PanelPage {
             anchors.right: parent.right
             anchors.rightMargin: 10
             anchors.verticalCenter: parent.verticalCenter
-            size: 16
+            size: Style.iconSmall
             name: "check-check"
             color: Theme.accent
             MouseArea {

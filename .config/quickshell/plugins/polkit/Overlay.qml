@@ -102,11 +102,11 @@ PanelWindow {
       spacing: 14
 
       Row {
-        spacing: 12
+        spacing: Style.spaceLoose
 
         Icon {
           anchors.verticalCenter: parent.verticalCenter
-          size: 26
+          size: Style.iconLarge
           name: "lock"
           color: (dialog.flow && dialog.flow.failed) ? Theme.error : Theme.accent
         }
@@ -116,7 +116,7 @@ PanelWindow {
           text: "Authentication required"
           color: Theme.fg
           font.family: Style.fontFamily
-          font.pixelSize: Style.fontSize + 2
+          font.pixelSize: Style.fontTitle
           font.bold: true
         }
       }
@@ -127,14 +127,14 @@ PanelWindow {
         text: dialog.flow ? dialog.flow.message : ""
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize
+        font.pixelSize: Style.fontTitle
       }
 
       Rectangle {
         width: parent.width
         height: 40
         radius: Style.radiusSmall
-        color: Theme.alpha(Theme.fg, 0.06)
+        color: Theme.alpha(Theme.fg, Style.cardAlpha)
         border.width: 1
         border.color: pwInput.activeFocus ? Theme.accent : Theme.alpha(Theme.fg, 0.15)
 
@@ -149,7 +149,7 @@ PanelWindow {
           selectionColor: Theme.alpha(Theme.accent, 0.4)
           selectedTextColor: Theme.fg
           font.family: Style.fontFamily
-          font.pixelSize: Style.fontSize
+          font.pixelSize: Style.fontTitle
           echoMode: (dialog.flow && dialog.flow.responseVisible) ? TextInput.Normal : TextInput.Password
           passwordCharacter: "•"
           enabled: dialog.active && dialog.flow && dialog.flow.isResponseRequired
@@ -180,12 +180,12 @@ PanelWindow {
         }
         color: (dialog.flow && (dialog.flow.supplementaryIsError || dialog.flow.failed)) ? Theme.error : Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 2
+        font.pixelSize: Style.fontBody
       }
 
       Row {
         anchors.right: parent.right
-        spacing: 8
+        spacing: Style.space
 
         Rectangle {
           width: 96
@@ -198,7 +198,7 @@ PanelWindow {
             text: "Cancel"
             color: Theme.fg
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize
+            font.pixelSize: Style.fontTitle
           }
 
           MouseArea {
@@ -221,7 +221,7 @@ PanelWindow {
             text: "Authenticate"
             color: Theme.bg
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize
+            font.pixelSize: Style.fontTitle
             font.bold: true
           }
 

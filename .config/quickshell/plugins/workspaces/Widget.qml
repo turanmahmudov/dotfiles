@@ -191,7 +191,7 @@ BarItem {
 
   Row {
     id: row
-    spacing: 8
+    spacing: Style.space
 
     Repeater {
       model: root.items
@@ -215,14 +215,14 @@ BarItem {
         Row {
           id: content
           anchors.centerIn: parent
-          spacing: 5
+          spacing: Style.spaceTight
 
           Text {
             anchors.verticalCenter: parent.verticalCenter
             text: root.labelFor(wsBtn.modelData)
             color: (wsBtn.focused || wsBtn.urgent) ? Theme.bg : (wsBtn.occupied ? Theme.fg : Theme.fgDim)
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize
+            font.pixelSize: Style.fontTitle
             font.bold: wsBtn.focused
           }
 
@@ -251,7 +251,7 @@ BarItem {
                 anchors.fill: parent
                 visible: winIcon.modelData.placeholder
                 name: "app-window"
-                size: 17
+                size: Style.iconSmall
                 color: (wsBtn.focused || wsBtn.urgent) ? Theme.bg : Theme.fg
               }
             }

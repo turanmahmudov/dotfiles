@@ -36,7 +36,7 @@ Rectangle {
     text: root.armed ? root.confirmLabel : root.label
     color: root.armed ? (root.danger ? Theme.error : Theme.accent) : Theme.fg
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 4
+    font.pixelSize: Style.fontCaption
   }
 
   MouseArea {

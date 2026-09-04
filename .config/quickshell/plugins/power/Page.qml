@@ -14,38 +14,52 @@ PanelPage {
     return "Balanced"
   }
 
-  Row {
+  Rectangle {
     width: parent.width
-    spacing: 10
+    implicitHeight: batteryRow.implicitHeight + 20
+    height: implicitHeight
+    radius: Style.radiusSmall
+    color: Theme.alpha(Theme.fg, Style.cardAlpha)
+    border.width: 1
+    border.color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
     visible: Battery.present
 
-    Icon {
+    Row {
+      id: batteryRow
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.margins: 10
       anchors.verticalCenter: parent.verticalCenter
-      size: 28
-      name: Icons.battery(Battery.percent, Battery.charging)
-      color: Theme.fg
-    }
+      spacing: Style.space
 
-    Column {
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: 2
-
-      Text {
-        text: Battery.percent + "%"
+      Icon {
+        anchors.verticalCenter: parent.verticalCenter
+        size: Style.iconLarge
+        name: Icons.battery(Battery.percent, Battery.charging)
         color: Theme.fg
-        font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize + 2
-        font.bold: true
       }
 
-      Text {
-        text: {
-          var state = Battery.full ? "Fully charged" : (Battery.charging ? "Charging" : "On battery")
-          return Battery.timeSummary.length > 0 ? (state + "  ·  " + Battery.timeSummary) : state
+      Column {
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: Style.spaceHair
+
+        Text {
+          text: Battery.percent + "%"
+          color: Theme.fg
+          font.family: Style.fontFamily
+          font.pixelSize: Style.fontTitle
+          font.bold: true
         }
-        color: Theme.fgDim
-        font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 2
+
+        Text {
+          text: {
+            var state = Battery.full ? "Fully charged" : (Battery.charging ? "Charging" : "On battery")
+            return Battery.timeSummary.length > 0 ? (state + "  ·  " + Battery.timeSummary) : state
+          }
+          color: Theme.fgDim
+          font.family: Style.fontFamily
+          font.pixelSize: Style.fontBody
+        }
       }
     }
   }
@@ -56,48 +70,17 @@ PanelPage {
 
   Column {
     width: parent.width
-    spacing: 6
+    spacing: Style.spaceTight
 
     Repeater {
       model: Battery.profiles
 
-      delegate: Rectangle {
-        id: pill
+      delegate: ListRow {
         required property var modelData
-        readonly property bool active: Battery.profile === modelData
-        width: parent.width
-        height: 36
-        radius: Style.radiusSmall
-        color: active ? Theme.alpha(Theme.accent, pillArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, pillArea.containsMouse ? 0.12 : 0.06)
-
-        Row {
-          anchors.left: parent.left
-          anchors.leftMargin: 10
-          anchors.verticalCenter: parent.verticalCenter
-          spacing: 8
-
-          Icon {
-            anchors.verticalCenter: parent.verticalCenter
-            name: Icons.profile(pill.modelData)
-            color: pill.active ? Theme.accent : Theme.fg
-          }
-
-          Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: panel.resolveProfileLabel(pill.modelData)
-            color: pill.active ? Theme.accent : Theme.fg
-            font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize
-          }
-        }
-
-        MouseArea {
-          id: pillArea
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: Battery.setProfile(pill.modelData)
-        }
+        iconName: Icons.profile(modelData)
+        label: panel.resolveProfileLabel(modelData)
+        active: Battery.profile === modelData
+        onClicked: Battery.setProfile(modelData)
       }
     }
   }

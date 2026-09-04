@@ -47,7 +47,7 @@ PopupWindow {
       text: tip.text
       color: Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 1
+      font.pixelSize: Style.fontBody
     }
   }
 }

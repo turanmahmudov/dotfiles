@@ -19,7 +19,7 @@ BarItem {
   onClicked: openPanel()
 
   Row {
-    spacing: 4
+    spacing: Style.spaceTight
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter
@@ -40,7 +40,7 @@ BarItem {
       text: Battery.percent + "%"
       color: root.critical ? Theme.urgent : (root.hovered ? Theme.fgDim : Theme.fg)
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize
+      font.pixelSize: Style.fontTitle
     }
   }
 }

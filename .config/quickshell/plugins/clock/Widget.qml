@@ -17,7 +17,7 @@ BarItem {
     text: Qt.formatDateTime(clock.date, (root.settings && root.settings.format) ? root.settings.format : "ddd, MMM d  HH:mm")
     color: Theme.fg
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize
+    font.pixelSize: Style.fontTitle
     font.bold: true
   }
 }

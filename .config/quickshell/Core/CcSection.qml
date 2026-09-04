@@ -181,7 +181,7 @@ Item {
         text: loader.widgetLabel
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 6
+        font.pixelSize: Style.fontMicro
       }
     }
 
@@ -245,7 +245,7 @@ Item {
     text: root.title
     color: root.dropIndex >= 0 ? Theme.accent : Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 6
+    font.pixelSize: Style.fontMicro
   }
 
   Item {
@@ -292,7 +292,7 @@ Item {
       text: root.hint
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 5
+      font.pixelSize: Style.fontMicro
     }
 
     Rectangle {

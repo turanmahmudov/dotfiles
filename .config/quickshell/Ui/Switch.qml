@@ -6,6 +6,11 @@ Item {
   property bool checked: false
   signal toggled()
 
+  activeFocusOnTab: true
+  Keys.onReturnPressed: root.toggled()
+  Keys.onEnterPressed: root.toggled()
+  Keys.onSpacePressed: root.toggled()
+
   implicitWidth: 32
   implicitHeight: 18
 
@@ -31,6 +36,8 @@ Item {
       NumberAnimation { duration: Style.animFast; easing.type: Easing.OutCubic }
     }
   }
+
+  FocusRing {}
 
   MouseArea {
     anchors.fill: parent

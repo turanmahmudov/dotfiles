@@ -8,14 +8,15 @@ PanelPage {
 
   readonly property var scalePresets: [1, 1.25, 1.5, 2]
   readonly property var transforms: [
-    { "value": 0, "label": "Normal" },
-    { "value": 1, "label": "90°" },
-    { "value": 2, "label": "180°" },
-    { "value": 3, "label": "270°" }
+    { "key": 0, "label": "Normal" },
+    { "key": 1, "label": "90°" },
+    { "key": 2, "label": "180°" },
+    { "key": 3, "label": "270°" }
   ]
+
   property string scaleEditMon: ""
   property string modeEditMon: ""
-  property bool advancedOpen: false
+  property string advancedMon: ""
 
   Component.onCompleted: {
     Monitors.refresh()
@@ -59,6 +60,26 @@ PanelPage {
     return false
   }
 
+  // The live scale carries floating point noise, so the pill row is told which
+  // preset it matches rather than compared against the raw value.
+  function resolveScaleKey(s) {
+    for (var i = 0; i < scalePresets.length; i++)
+      if (Math.abs(s - scalePresets[i]) < 0.01)
+        return scalePresets[i]
+    return "custom"
+  }
+
+  function buildScaleEntries(monitor) {
+    var out = []
+    for (var i = 0; i < scalePresets.length; i++)
+      out.push({ "key": scalePresets[i], "label": panel.formatScaleLabel(scalePresets[i]) })
+    out.push({
+      "key": "custom",
+      "label": panel.isPresetScale(monitor.scale) ? "Custom" : panel.formatScaleLabel(monitor.scale)
+    })
+    return out
+  }
+
   function applyCustomScale(name, text) {
     var v = parseFloat(text)
     if (isNaN(v) || v <= 0)
@@ -67,333 +88,527 @@ PanelPage {
     scaleEditMon = ""
   }
 
+  function toggleAdvanced(name) {
+    panel.advancedMon = panel.advancedMon === name ? "" : name
+    panel.modeEditMon = ""
+  }
+
+  PillRow {
+    visible: DisplayModes.modes.length > 1
+    entries: DisplayModes.modes
+    current: DisplayModes.current
+    onPicked: (key) => DisplayModes.applyMode(key)
+  }
+
   Rectangle {
     width: parent.width
-    height: 34
+    height: Style.rowHeight
     radius: Style.radiusSmall
-    color: NightLight.enabled ? Theme.alpha(Theme.accent, nlArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, nlArea.containsMouse ? 0.12 : 0.06)
+    color: Theme.alpha(Theme.fg, nlArea.containsMouse ? Style.cardHoverAlpha : Style.cardAlpha)
+    border.width: 1
+    border.color: NightLight.enabled
+      ? Theme.alpha(Theme.accent, Style.cardActiveBorderAlpha)
+      : Theme.alpha(Theme.fg, Style.cardBorderAlpha)
 
-    Row {
-      anchors.centerIn: parent
-      spacing: 6
-
-      Icon {
-        anchors.verticalCenter: parent.verticalCenter
-        name: NightLight.enabled ? "moon" : "sun"
-        color: NightLight.enabled ? Theme.accent : Theme.fg
+    Behavior on color {
+      ColorAnimation {
+        duration: Style.animFast
       }
+    }
 
-      Text {
-        anchors.verticalCenter: parent.verticalCenter
-        text: NightLight.enabled ? ("Night Light  ·  " + NightLight.temperature + "K") : "Night Light"
-        color: NightLight.enabled ? Theme.accent : Theme.fg
-        font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 1
+    Icon {
+      id: nlIcon
+      anchors.left: parent.left
+      anchors.leftMargin: 10
+      anchors.verticalCenter: parent.verticalCenter
+      name: NightLight.enabled ? "moon" : "sun"
+      color: NightLight.enabled ? Theme.accent : Theme.fg
+      size: Style.iconSmall
+    }
+
+    Text {
+      anchors.left: nlIcon.right
+      anchors.leftMargin: Style.space
+      anchors.right: nlValue.left
+      anchors.rightMargin: Style.space
+      anchors.verticalCenter: parent.verticalCenter
+      elide: Text.ElideRight
+      text: "Night Light"
+      color: NightLight.enabled ? Theme.accent : Theme.fg
+      font.family: Style.fontFamily
+      font.pixelSize: Style.fontBody
+    }
+
+    Text {
+      id: nlValue
+      anchors.right: nlSwitch.left
+      anchors.rightMargin: Style.space
+      anchors.verticalCenter: parent.verticalCenter
+      text: NightLight.temperature + "K"
+      color: Theme.fgDim
+      font.family: Style.fontFamily
+      font.pixelSize: Style.fontCaption
+      opacity: NightLight.enabled ? 1 : 0
+
+      Behavior on opacity {
+        NumberAnimation {
+          duration: Style.animFast
+        }
       }
+    }
+
+    Switch {
+      id: nlSwitch
+      anchors.right: parent.right
+      anchors.rightMargin: 10
+      anchors.verticalCenter: parent.verticalCenter
+      checked: NightLight.enabled
+      onToggled: NightLight.toggle()
     }
 
     MouseArea {
       id: nlArea
       anchors.fill: parent
+      anchors.rightMargin: 46
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
       onClicked: NightLight.toggle()
     }
   }
 
-  Item {
-    width: parent.width
-    height: 24
-    visible: NightLight.enabled
+  Reveal {
+    open: NightLight.enabled
 
-    Icon {
-      id: nlWarm
-      anchors.left: parent.left
-      anchors.verticalCenter: parent.verticalCenter
-      name: "sun"
-      color: Theme.warning
-      size: 16
-    }
+    Item {
+      width: parent.width
+      height: 24
 
-    Slider {
-      anchors.left: nlWarm.right
-      anchors.right: parent.right
-      anchors.leftMargin: 10
-      anchors.verticalCenter: parent.verticalCenter
-      stepSize: 100 / (NightLight.maxTemp - NightLight.minTemp)
-      value: (NightLight.temperature - NightLight.minTemp) / (NightLight.maxTemp - NightLight.minTemp)
-      onMoved: (v) => NightLight.setTemperature(NightLight.minTemp + v * (NightLight.maxTemp - NightLight.minTemp))
+      Icon {
+        id: nlWarm
+        anchors.left: parent.left
+        anchors.leftMargin: 10
+        anchors.verticalCenter: parent.verticalCenter
+        name: "sun"
+        color: Theme.warning
+        size: Style.iconSmall
+      }
+
+      Slider {
+        anchors.left: nlWarm.right
+        anchors.right: parent.right
+        anchors.leftMargin: Style.space
+        anchors.rightMargin: 10
+        anchors.verticalCenter: parent.verticalCenter
+        stepSize: 100 / (NightLight.maxTemp - NightLight.minTemp)
+        value: (NightLight.temperature - NightLight.minTemp) / (NightLight.maxTemp - NightLight.minTemp)
+        onMoved: (v) => NightLight.setTemperature(NightLight.minTemp + v * (NightLight.maxTemp - NightLight.minTemp))
+      }
     }
   }
 
   Column {
     width: parent.width
-    spacing: 12
+    spacing: Style.space
 
     Repeater {
       model: Monitors.list
 
-      delegate: Column {
+      delegate: Rectangle {
         id: monBlock
         required property var modelData
+        readonly property bool advancedOpen: panel.advancedMon === modelData.name
+
         width: parent.width
-        spacing: 6
+        implicitHeight: monContent.implicitHeight + 20
+        height: implicitHeight
+        radius: Style.radiusSmall
+        color: Theme.alpha(Theme.fg, Style.cardAlpha)
+        border.width: 1
+        border.color: monBlock.advancedOpen
+          ? Theme.alpha(Theme.accent, Style.cardActiveBorderAlpha)
+          : Theme.alpha(Theme.fg, Style.cardBorderAlpha)
 
-        Item {
-          width: parent.width
-          height: nameCol.implicitHeight
-
-          Column {
-            id: nameCol
-            anchors.left: parent.left
-            anchors.right: toggle.left
-            anchors.rightMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 2
-
-            Text {
-              text: monBlock.modelData.name
-              color: monBlock.modelData.focused ? Theme.accentActive : Theme.fg
-              font.family: Style.fontFamily
-              font.pixelSize: Style.fontSize
-              font.bold: true
-            }
-
-            Text {
-              width: parent.width
-              elide: Text.ElideRight
-              text: {
-                var m = monBlock.modelData
-                if (m.disabled)
-                  return (m.internal ? "Internal display" : (m.description || "External display")) + " · off"
-                return m.width + "×" + m.height + " @ " + m.refreshRate + "Hz · scale " + panel.formatScaleLabel(m.scale)
-              }
-              color: Theme.fgDim
-              font.family: Style.fontFamily
-              font.pixelSize: Style.fontSize - 2
-            }
-          }
-
-          Rectangle {
-            id: toggle
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            width: 52
-            height: 26
-            radius: Style.radiusSmall
-            readonly property bool on: !monBlock.modelData.disabled
-            color: on ? Theme.alpha(Theme.accent, toggleArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, toggleArea.containsMouse ? 0.12 : 0.06)
-
-            Text {
-              anchors.centerIn: parent
-              text: toggle.on ? "On" : "Off"
-              color: toggle.on ? Theme.accent : Theme.fgDim
-              font.family: Style.fontFamily
-              font.pixelSize: Style.fontSize - 1
-            }
-
-            MouseArea {
-              id: toggleArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: MonitorLayout.setEnabled(monBlock.modelData.name, !toggle.on)
-            }
+        Behavior on border.color {
+          ColorAnimation {
+            duration: Style.animFast
           }
         }
 
-        Item {
-          id: monBright
-          width: parent.width
-          height: 24
-          readonly property bool ddc: !monBlock.modelData.internal && Monitors.hasDdc(monBlock.modelData.name)
-          visible: !monBlock.modelData.disabled && ((monBlock.modelData.internal && Brightness.available) || ddc)
-          property real ddcValue: 0
-          property int ddcApplied: -1
-          readonly property int level: ddc ? Math.round(ddcValue * 100) : Brightness.value
+        Column {
+          id: monContent
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.top: parent.top
+          anchors.margins: 10
+          spacing: Style.space
 
-          Connections {
-            target: Monitors
-            function onDdcByNameChanged() {
-              if (monBright.ddc && !ddcDebounce.running) {
-                var b = Monitors.ddcBrightness(monBlock.modelData.name)
-                if (b >= 0) {
-                  monBright.ddcValue = b / 100
-                  monBright.ddcApplied = b
+          Item {
+            width: parent.width
+            height: nameCol.implicitHeight
+
+            Icon {
+              id: monIcon
+              anchors.left: parent.left
+              anchors.verticalCenter: parent.verticalCenter
+              name: monBlock.modelData.internal ? "laptop-minimal" : "monitor"
+              color: monBlock.modelData.disabled
+                ? Theme.fgDim
+                : (monBlock.modelData.focused ? Theme.accentActive : Theme.fg)
+              size: Style.iconMedium
+            }
+
+            Column {
+              id: nameCol
+              anchors.left: monIcon.right
+              anchors.leftMargin: 10
+              anchors.right: toggle.left
+              anchors.rightMargin: 10
+              anchors.verticalCenter: parent.verticalCenter
+              spacing: Style.spaceHair
+
+              Text {
+                text: monBlock.modelData.name
+                color: monBlock.modelData.focused ? Theme.accentActive : Theme.fg
+                font.family: Style.fontFamily
+                font.pixelSize: Style.fontBody
+                font.bold: true
+              }
+
+              Text {
+                width: parent.width
+                elide: Text.ElideRight
+                text: {
+                  var m = monBlock.modelData
+                  if (m.disabled)
+                    return (m.internal ? "Internal display" : (m.description || "External display")) + "  ·  off"
+                  return m.width + "×" + m.height + "  ·  " + m.refreshRate + "Hz  ·  "
+                    + panel.formatScaleLabel(m.scale)
+                }
+                color: Theme.fgDim
+                font.family: Style.fontFamily
+                font.pixelSize: Style.fontCaption
+              }
+            }
+
+            Switch {
+              id: toggle
+              anchors.right: advancedButton.left
+              anchors.rightMargin: 10
+              anchors.verticalCenter: parent.verticalCenter
+              checked: !monBlock.modelData.disabled
+              onToggled: MonitorLayout.setEnabled(monBlock.modelData.name, !checked)
+            }
+
+            Item {
+              id: advancedButton
+              anchors.right: parent.right
+              anchors.verticalCenter: parent.verticalCenter
+              width: 24
+              height: 24
+              visible: !monBlock.modelData.disabled
+
+              Icon {
+                anchors.centerIn: parent
+                size: Style.iconTiny
+                name: "chevron-right"
+                color: (advancedArea.containsMouse || monBlock.advancedOpen) ? Theme.accent : Theme.fgDim
+                rotation: monBlock.advancedOpen ? 90 : 0
+
+                Behavior on rotation {
+                  NumberAnimation {
+                    duration: Style.anim
+                    easing.type: Easing.OutCubic
+                  }
+                }
+              }
+
+              MouseArea {
+                id: advancedArea
+                anchors.fill: parent
+                anchors.margins: -4
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: panel.toggleAdvanced(monBlock.modelData.name)
+              }
+            }
+          }
+
+          Item {
+            id: monBright
+            width: parent.width
+            height: 24
+            readonly property bool ddc: !monBlock.modelData.internal && Monitors.hasDdc(monBlock.modelData.name)
+            visible: !monBlock.modelData.disabled
+              && ((monBlock.modelData.internal && Brightness.available) || ddc)
+            property real ddcValue: 0
+            property int ddcApplied: -1
+            readonly property int level: ddc ? Math.round(ddcValue * 100) : Brightness.value
+
+            Connections {
+              target: Monitors
+              function onDdcByNameChanged() {
+                if (monBright.ddc && !ddcDebounce.running) {
+                  var b = Monitors.ddcBrightness(monBlock.modelData.name)
+                  if (b >= 0) {
+                    monBright.ddcValue = b / 100
+                    monBright.ddcApplied = b
+                  }
+                }
+              }
+            }
+
+            Timer {
+              id: ddcDebounce
+              interval: 250
+              onTriggered: {
+                var t = Math.round(monBright.ddcValue * 100)
+                if (t !== monBright.ddcApplied) {
+                  monBright.ddcApplied = t
+                  Monitors.setDdcBrightness(monBlock.modelData.name, t)
+                }
+              }
+            }
+
+            Icon {
+              id: monBrightIcon
+              anchors.left: parent.left
+              anchors.verticalCenter: parent.verticalCenter
+              name: "sun"
+              color: Theme.fg
+              size: Style.iconSmall
+            }
+
+            Text {
+              id: monBrightPct
+              anchors.right: parent.right
+              anchors.verticalCenter: parent.verticalCenter
+              width: 34
+              horizontalAlignment: Text.AlignRight
+              text: monBright.level + "%"
+              color: Theme.fgDim
+              font.family: Style.fontFamily
+              font.pixelSize: Style.fontCaption
+            }
+
+            Slider {
+              anchors.left: monBrightIcon.right
+              anchors.right: monBrightPct.left
+              anchors.leftMargin: 10
+              anchors.rightMargin: 10
+              anchors.verticalCenter: parent.verticalCenter
+              value: monBright.ddc ? monBright.ddcValue : (Brightness.value / 100)
+              onMoved: (v) => {
+                if (monBright.ddc) {
+                  monBright.ddcValue = v
+                  ddcDebounce.restart()
+                } else {
+                  Brightness.setPercent(Math.round(v * 100))
                 }
               }
             }
           }
 
-          Timer {
-            id: ddcDebounce
-            interval: 250
-            onTriggered: {
-              var t = Math.round(monBright.ddcValue * 100)
-              if (t !== monBright.ddcApplied) {
-                monBright.ddcApplied = t
-                Monitors.setDdcBrightness(monBlock.modelData.name, t)
-              }
+
+
+          Reveal {
+            open: monBlock.advancedOpen && !monBlock.modelData.disabled
+            bodySpacing: 6
+
+            Rectangle {
+              width: parent.width
+              height: 1
+              color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
             }
-          }
 
-          Icon {
-            id: monBrightIcon
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            name: "sun"
-            color: Theme.fg
-            size: 16
-          }
-
-          Text {
-            id: monBrightPct
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            width: 34
-            horizontalAlignment: Text.AlignRight
-            text: monBright.level + "%"
-            color: Theme.fgDim
-            font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 2
-          }
-
-          Slider {
-            anchors.left: monBrightIcon.right
-            anchors.right: monBrightPct.left
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            value: monBright.ddc ? monBright.ddcValue : (Brightness.value / 100)
-            onMoved: (v) => {
-              if (monBright.ddc) {
-                monBright.ddcValue = v
-                ddcDebounce.restart()
-              } else {
-                Brightness.setPercent(Math.round(v * 100))
+            PillRow {
+              width: parent.width
+              rowHeight: 28
+              entries: panel.buildScaleEntries(monBlock.modelData)
+              current: panel.resolveScaleKey(monBlock.modelData.scale)
+              onPicked: (key) => {
+                if (key === "custom")
+                  panel.scaleEditMon = panel.scaleEditMon === monBlock.modelData.name
+                    ? "" : monBlock.modelData.name
+                else
+                  MonitorLayout.setScale(monBlock.modelData.name, key)
               }
-            }
           }
-        }
 
-        Row {
-          visible: !monBlock.modelData.disabled
-          spacing: 6
+            Reveal {
+              open: !monBlock.modelData.disabled && panel.scaleEditMon === monBlock.modelData.name
 
-          Repeater {
-            model: panel.scalePresets
+              Rectangle {
+                width: parent.width
+                height: 32
+                radius: Style.radiusSmall
+                color: Theme.alpha(Theme.fg, Style.cardAlpha)
+                border.width: 1
+                border.color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
 
-            delegate: Rectangle {
-              id: preset
-              required property var modelData
-              readonly property bool active: Math.abs(monBlock.modelData.scale - modelData) < 0.01
-              width: 52
-              height: 28
+                TextInput {
+                  id: scaleInput
+                  anchors.left: parent.left
+                  anchors.right: applyBtn.left
+                  anchors.leftMargin: 10
+                  anchors.rightMargin: 6
+                  anchors.verticalCenter: parent.verticalCenter
+                  color: Theme.fg
+                  font.family: Style.fontFamily
+                  font.pixelSize: Style.fontBody
+                  clip: true
+                  inputMethodHints: Qt.ImhFormattedNumbersOnly
+                  validator: DoubleValidator {
+                    bottom: 0.5
+                    top: 3.0
+                    decimals: 4
+                    notation: DoubleValidator.StandardNotation
+                  }
+                  focus: parent.visible
+                  onVisibleChanged: if (visible) {
+                    text = panel.formatScaleNumber(monBlock.modelData.scale)
+                    forceActiveFocus()
+                    selectAll()
+                  }
+                  onAccepted: panel.applyCustomScale(monBlock.modelData.name, text)
+
+                  Text {
+                    anchors.fill: parent
+                    verticalAlignment: Text.AlignVCenter
+                    visible: scaleInput.text.length === 0
+                    text: "Scale e.g. 1.2"
+                    color: Theme.fgDim
+                    font: scaleInput.font
+                  }
+                }
+
+                Icon {
+                  id: applyBtn
+                  anchors.right: parent.right
+                  anchors.rightMargin: 10
+                  anchors.verticalCenter: parent.verticalCenter
+                  size: Style.iconSmall
+                  name: "check-check"
+                  color: Theme.accent
+
+                  MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -4
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: panel.applyCustomScale(monBlock.modelData.name, scaleInput.text)
+                  }
+                }
+              }
+          }
+
+            Rectangle {
+              readonly property bool editing: panel.modeEditMon === monBlock.modelData.name
+              width: parent.width
+              height: Style.rowHeight
               radius: Style.radiusSmall
-              color: active ? Theme.alpha(Theme.accent, presetArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, presetArea.containsMouse ? 0.12 : 0.06)
+              color: editing
+                ? Theme.alpha(Theme.accent, Style.cardActiveAlpha)
+                : Theme.alpha(Theme.fg, modeArea.containsMouse ? Style.cardHoverAlpha : Style.cardAlpha)
+              border.width: 1
+              border.color: editing
+                ? Theme.alpha(Theme.accent, Style.cardActiveBorderAlpha)
+                : Theme.alpha(Theme.fg, Style.cardBorderAlpha)
+
+              Behavior on color {
+                ColorAnimation {
+                  duration: Style.animFast
+                }
+              }
 
               Text {
-                anchors.centerIn: parent
-                text: panel.formatScaleLabel(preset.modelData)
-                color: preset.active ? Theme.accent : Theme.fg
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Resolution"
+                color: Theme.fg
                 font.family: Style.fontFamily
-                font.pixelSize: Style.fontSize - 1
+                font.pixelSize: Style.fontBody
+              }
+
+              Text {
+                anchors.right: parent.right
+                anchors.rightMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
+                text: monBlock.modelData.width + " × " + monBlock.modelData.height
+                  + "   " + monBlock.modelData.refreshRate + " Hz"
+                color: Theme.fgDim
+                font.family: Style.fontFamily
+                font.pixelSize: Style.fontCaption
               }
 
               MouseArea {
-                id: presetArea
+                id: modeArea
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: MonitorLayout.setScale(monBlock.modelData.name, preset.modelData)
+                onClicked: panel.modeEditMon = panel.modeEditMon === monBlock.modelData.name
+                  ? "" : monBlock.modelData.name
               }
             }
-          }
 
-          Rectangle {
-            id: customPill
-            readonly property bool isCustom: !panel.isPresetScale(monBlock.modelData.scale)
-            readonly property bool editing: panel.scaleEditMon === monBlock.modelData.name
-            implicitWidth: customLabel.implicitWidth + 20
-            height: 28
-            radius: Style.radiusSmall
-            color: (isCustom || editing) ? Theme.alpha(Theme.accent, customArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, customArea.containsMouse ? 0.12 : 0.06)
+            ListView {
+              readonly property var options: panel.buildModeOptions(monBlock.modelData)
+              readonly property bool showing: panel.modeEditMon === monBlock.modelData.name
+              width: parent.width
+              height: showing ? Math.min(132, contentHeight) : 0
+              visible: height > 0.5
+              opacity: showing ? 1 : 0
+              clip: true
+              spacing: Style.spaceHair
+              boundsBehavior: Flickable.StopAtBounds
+              model: options
 
-            Text {
-              id: customLabel
-              anchors.centerIn: parent
-              text: customPill.isCustom ? panel.formatScaleLabel(monBlock.modelData.scale) : "Custom"
-              color: (customPill.isCustom || customPill.editing) ? Theme.accent : Theme.fg
-              font.family: Style.fontFamily
-              font.pixelSize: Style.fontSize - 1
+              Behavior on opacity {
+                NumberAnimation {
+                  duration: Style.animFast
+                }
+              }
+
+              delegate: Rectangle {
+                id: modeRow
+                required property var modelData
+                readonly property bool active: modelData.value === MonitorLayout.formatMode(monBlock.modelData)
+
+                width: ListView.view.width
+                height: 26
+                radius: Style.radiusSmall
+                color: modeRowArea.containsMouse
+                  ? Theme.alpha(Theme.accent, Style.cardActiveHoverAlpha)
+                  : (active ? Theme.alpha(Theme.fg, Style.cardHoverAlpha) : "transparent")
+
+                Text {
+                  anchors.left: parent.left
+                  anchors.leftMargin: 10
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: modeRow.modelData.label
+                  color: modeRow.active ? Theme.accent : Theme.fg
+                  font.family: Style.fontFamily
+                  font.pixelSize: Style.fontCaption
+                }
+
+                MouseArea {
+                  id: modeRowArea
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: {
+                    MonitorLayout.setMode(monBlock.modelData.name, modeRow.modelData.value)
+                    panel.modeEditMon = ""
+                  }
+                }
+              }
             }
 
-            MouseArea {
-              id: customArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: panel.scaleEditMon = customPill.editing ? "" : monBlock.modelData.name
-            }
-          }
-        }
-
-        Rectangle {
-          width: parent.width
-          height: 34
-          radius: Style.radiusSmall
-          color: Theme.alpha(Theme.fg, 0.06)
-          visible: !monBlock.modelData.disabled && panel.scaleEditMon === monBlock.modelData.name
-
-          TextInput {
-            id: scaleInput
-            anchors.left: parent.left
-            anchors.right: applyBtn.left
-            anchors.leftMargin: 10
-            anchors.rightMargin: 6
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.fg
-            font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 1
-            clip: true
-            inputMethodHints: Qt.ImhFormattedNumbersOnly
-            validator: DoubleValidator {
-              bottom: 0.5
-              top: 3.0
-              decimals: 4
-              notation: DoubleValidator.StandardNotation
-            }
-            focus: parent.visible
-            onVisibleChanged: if (visible) {
-              text = panel.formatScaleNumber(monBlock.modelData.scale)
-              forceActiveFocus()
-              selectAll()
-            }
-            onAccepted: panel.applyCustomScale(monBlock.modelData.name, text)
-
-            Text {
-              anchors.fill: parent
-              verticalAlignment: Text.AlignVCenter
-              visible: scaleInput.text.length === 0
-              text: "Scale e.g. 1.2"
-              color: Theme.fgDim
-              font: scaleInput.font
-            }
-          }
-
-          Icon {
-            id: applyBtn
-            anchors.right: parent.right
-            anchors.rightMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            size: 16
-            name: "check-check"
-            color: Theme.accent
-
-            MouseArea {
-              anchors.fill: parent
-              cursorShape: Qt.PointingHandCursor
-              onClicked: panel.applyCustomScale(monBlock.modelData.name, scaleInput.text)
+            PillRow {
+              width: parent.width
+              rowHeight: 28
+              entries: panel.transforms
+              current: monBlock.modelData.transform || 0
+              onPicked: (key) => MonitorLayout.setTransform(monBlock.modelData.name, key)
             }
           }
         }
@@ -401,196 +616,13 @@ PanelPage {
     }
   }
 
-  Rectangle {
-    width: parent.width
-    height: 30
-    radius: Style.radiusSmall
-    color: advancedArea.containsMouse ? Theme.alpha(Theme.fg, 0.12) : Theme.alpha(Theme.fg, 0.06)
-
-    Row {
-      anchors.left: parent.left
-      anchors.leftMargin: 10
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: 6
-
-      Icon {
-        anchors.verticalCenter: parent.verticalCenter
-        name: panel.advancedOpen ? "arrow-down" : "chevron-right"
-        color: Theme.fgDim
-        size: 14
-      }
-
-      Text {
-        anchors.verticalCenter: parent.verticalCenter
-        text: "Advanced"
-        color: Theme.fg
-        font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 1
-      }
-    }
-
-    MouseArea {
-      id: advancedArea
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: {
-        panel.advancedOpen = !panel.advancedOpen
-        if (!panel.advancedOpen)
-          panel.modeEditMon = ""
-      }
-    }
-  }
-
-  Column {
-    width: parent.width
-    spacing: 12
-    visible: panel.advancedOpen
+  CollapsibleSection {
+    title: "Advanced"
+    visible: Monitors.activeCount > 1
+    bodySpacing: 12
 
     MonitorCanvas {
       width: parent.width
-    }
-
-    Repeater {
-      model: Monitors.list
-
-      delegate: Column {
-        id: advBlock
-        required property var modelData
-        width: parent.width
-        spacing: 6
-        visible: !modelData.disabled
-
-        Text {
-          text: advBlock.modelData.name
-          color: Theme.fgDim
-          font.family: Style.fontFamily
-          font.pixelSize: Style.fontSize - 2
-          font.bold: true
-        }
-
-        Rectangle {
-          readonly property bool editing: panel.modeEditMon === advBlock.modelData.name
-          width: parent.width
-          height: 30
-          radius: Style.radiusSmall
-          color: editing
-            ? Theme.alpha(Theme.accent, 0.2)
-            : Theme.alpha(Theme.fg, modeArea.containsMouse ? 0.12 : 0.06)
-
-          Text {
-            anchors.left: parent.left
-            anchors.leftMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            text: "Resolution"
-            color: Theme.fg
-            font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 1
-          }
-
-          Text {
-            anchors.right: parent.right
-            anchors.rightMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            text: advBlock.modelData.width + " × " + advBlock.modelData.height
-              + "   " + advBlock.modelData.refreshRate + " Hz"
-            color: Theme.fgDim
-            font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 2
-          }
-
-          MouseArea {
-            id: modeArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: panel.modeEditMon = panel.modeEditMon === advBlock.modelData.name
-              ? "" : advBlock.modelData.name
-          }
-        }
-
-        ListView {
-          readonly property var options: panel.buildModeOptions(advBlock.modelData)
-          width: parent.width
-          height: Math.min(132, contentHeight)
-          visible: panel.modeEditMon === advBlock.modelData.name
-          clip: true
-          spacing: 2
-          boundsBehavior: Flickable.StopAtBounds
-          model: options
-
-          delegate: Rectangle {
-            id: modeRow
-            required property var modelData
-            readonly property bool active: modelData.value === MonitorLayout.formatMode(advBlock.modelData)
-
-            width: ListView.view.width
-            height: 26
-            radius: Style.radiusSmall
-            color: modeRowArea.containsMouse
-              ? Theme.alpha(Theme.accent, 0.24)
-              : (active ? Theme.alpha(Theme.fg, 0.12) : "transparent")
-
-            Text {
-              anchors.left: parent.left
-              anchors.leftMargin: 10
-              anchors.verticalCenter: parent.verticalCenter
-              text: modeRow.modelData.label
-              color: modeRow.active ? Theme.accent : Theme.fg
-              font.family: Style.fontFamily
-              font.pixelSize: Style.fontSize - 2
-            }
-
-            MouseArea {
-              id: modeRowArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                MonitorLayout.setMode(advBlock.modelData.name, modeRow.modelData.value)
-                panel.modeEditMon = ""
-              }
-            }
-          }
-        }
-
-        Row {
-          spacing: 6
-
-          Repeater {
-            model: panel.transforms
-
-            delegate: Rectangle {
-              id: rotation
-              required property var modelData
-              readonly property bool active: (advBlock.modelData.transform || 0) === modelData.value
-              implicitWidth: rotationLabel.implicitWidth + 20
-              height: 28
-              radius: Style.radiusSmall
-              color: active
-                ? Theme.alpha(Theme.accent, rotationArea.containsMouse ? 0.28 : 0.2)
-                : Theme.alpha(Theme.fg, rotationArea.containsMouse ? 0.12 : 0.06)
-
-              Text {
-                id: rotationLabel
-                anchors.centerIn: parent
-                text: rotation.modelData.label
-                color: rotation.active ? Theme.accent : Theme.fg
-                font.family: Style.fontFamily
-                font.pixelSize: Style.fontSize - 1
-              }
-
-              MouseArea {
-                id: rotationArea
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: MonitorLayout.setTransform(advBlock.modelData.name, rotation.modelData.value)
-              }
-            }
-          }
-        }
-      }
     }
   }
 }

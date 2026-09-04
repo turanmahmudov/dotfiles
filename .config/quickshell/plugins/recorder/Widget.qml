@@ -10,7 +10,7 @@ BarItem {
   onClicked: Recorder.stop()
 
   Row {
-    spacing: 5
+    spacing: Style.spaceTight
 
     Rectangle {
       anchors.verticalCenter: parent.verticalCenter
@@ -32,7 +32,7 @@ BarItem {
       text: Recorder.elapsedLabel
       color: root.hovered ? Theme.fgDim : Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize
+      font.pixelSize: Style.fontTitle
     }
   }
 }

@@ -26,13 +26,25 @@ PanelWindow {
       return 900
     return Math.max(160, h - Style.barHeight - 24)
   }
-  readonly property int wantHeight: Math.min(header.height + body.contentHeight, maxHeight)
+  // The card sits 1px inside the window on each side, so the window has to be
+  // two pixels taller than the content for the content to fit exactly. Without
+  // this the scroll view is always a little larger than its viewport, which
+  // leaves the panel permanently scrollable and lets every content change nudge
+  // the scroll position.
+  readonly property int wantHeight: Math.min(Math.ceil(header.height + body.contentHeight) + 2, maxHeight)
 
   readonly property bool standalone: !!controller && controller.resolvePageMode(pageId) === "standalone"
   // A page with no title and nothing to put beside it gets no header at all.
   readonly property bool showHeader: !!(pageLoader.item && pageLoader.item.title.length > 0)
     || backButton.visible || headerSwitch.visible
   readonly property bool followsAnchor: standalone && anchorItem !== null
+
+  function focusNext(forward) {
+    var from = panel.activeFocusItem ? panel.activeFocusItem : card
+    var next = from.nextItemInFocusChain(forward)
+    if (next)
+      next.forceActiveFocus(Qt.TabFocusReason)
+  }
 
   function repositionUnderAnchor() {
     if (!followsAnchor || !anchorWin)
@@ -75,14 +87,14 @@ PanelWindow {
     onCleared: if (panel.controller) panel.controller.close()
   }
 
+  // Filling the window instead of computing a height keeps the card and the
+  // surface the same size at all times. A layer surface resize is acknowledged
+  // by the compositor a frame or two later, so a card that sizes itself from
+  // wantHeight disagrees with the surface for those frames and flashes.
   Rectangle {
     id: card
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.top: panel.atTop ? parent.top : undefined
-    anchors.bottom: panel.atTop ? undefined : parent.bottom
+    anchors.fill: parent
     anchors.margins: 1
-    height: Math.max(0, panel.wantHeight - 2)
     radius: Style.radius
     color: Theme.alpha(Theme.bg, Style.surfaceAlpha)
     border.color: Theme.alpha(Theme.fg, 0.15)
@@ -144,7 +156,7 @@ PanelWindow {
         text: pageLoader.item ? pageLoader.item.title : ""
         color: Theme.fgBright
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize
+        font.pixelSize: Style.fontTitle
         font.bold: true
       }
 
@@ -167,8 +179,28 @@ PanelWindow {
       clip: true
       interactive: contentHeight > height
       boundsBehavior: Flickable.StopAtBounds
+      flickableDirection: Flickable.VerticalFlick
+      pixelAligned: true
       contentWidth: width
-      contentHeight: pageLoader.implicitHeight + Style.panelPadding * 2
+      // Rounded up: a fractional content height never matches the integer
+      // viewport, and the leftover fraction makes the view scrollable.
+      contentHeight: Math.ceil(pageLoader.implicitHeight) + Style.panelPadding * 2
+
+      // Folding a section shrinks the content under the scroll position, and
+      // the default rebound transition animates that correction, which reads as
+      // the panel bouncing. The correction is applied at once instead.
+      rebound: Transition {}
+
+      function clampContentY() {
+        var maxY = Math.max(0, body.contentHeight - body.height)
+        if (body.contentY > maxY) {
+          body.cancelFlick()
+          body.contentY = maxY
+        }
+      }
+
+      onContentHeightChanged: body.clampContentY()
+      onHeightChanged: body.clampContentY()
 
       Loader {
         id: pageLoader
@@ -219,10 +251,16 @@ PanelWindow {
     }
   }
 
+  // Up and Down walk the same chain Tab uses, so every focusable row in a page
+  // is reachable without the pointer.
   Item {
     anchors.fill: parent
     focus: true
     Keys.onEscapePressed: if (panel.controller) panel.controller.close()
+    Keys.onDownPressed: panel.focusNext(true)
+    Keys.onUpPressed: panel.focusNext(false)
+    Keys.onTabPressed: panel.focusNext(true)
+    Keys.onBacktabPressed: panel.focusNext(false)
     Component.onCompleted: forceActiveFocus()
   }
 }

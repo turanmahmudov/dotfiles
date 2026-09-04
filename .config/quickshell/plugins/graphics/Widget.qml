@@ -13,7 +13,7 @@ BarItem {
   onClicked: openPanel()
 
   Row {
-    spacing: 4
+    spacing: Style.spaceTight
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter

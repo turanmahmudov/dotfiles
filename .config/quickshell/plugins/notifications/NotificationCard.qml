@@ -103,7 +103,7 @@ Rectangle {
     anchors.right: parent.right
     anchors.top: parent.top
     anchors.margins: 8
-    size: 14
+    size: Style.iconTiny
     name: "x"
     color: closeArea.containsMouse ? Theme.fg : Theme.fgDim
     MouseArea {
@@ -123,7 +123,7 @@ Rectangle {
     anchors.right: closeBtn.left
     anchors.rightMargin: 6
     anchors.verticalCenter: parent.verticalCenter
-    spacing: 3
+    spacing: Style.spaceHair
 
     Text {
       visible: card.showAppName && text.length > 0
@@ -132,7 +132,7 @@ Rectangle {
       text: card.notif ? (card.notif.appName || "") : ""
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 3
+      font.pixelSize: Style.fontCaption
     }
 
     Item {
@@ -149,7 +149,7 @@ Rectangle {
         text: card.notif ? (card.notif.summary || "") : ""
         color: Theme.fg
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 1
+        font.pixelSize: Style.fontBody
         font.bold: true
       }
 
@@ -161,7 +161,7 @@ Rectangle {
         text: Notifications.formatAge(card.notif)
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 4
+        font.pixelSize: Style.fontCaption
       }
     }
 
@@ -176,7 +176,7 @@ Rectangle {
       text: card.notif ? (card.notif.body || "") : ""
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 2
+      font.pixelSize: Style.fontBody
     }
 
     Text {
@@ -186,7 +186,7 @@ Rectangle {
       text: card.bodyExpanded ? "Show less" : "Show more"
       color: bodyToggleArea.containsMouse ? Theme.fg : Theme.accent
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 3
+      font.pixelSize: Style.fontCaption
 
       MouseArea {
         id: bodyToggleArea
@@ -199,7 +199,7 @@ Rectangle {
 
     Row {
       visible: card.visibleActions.length > 0
-      spacing: 6
+      spacing: Style.spaceTight
       topPadding: 4
 
       Repeater {
@@ -219,7 +219,7 @@ Rectangle {
             text: actBtn.modelData.text
             color: Theme.fg
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 2
+            font.pixelSize: Style.fontBody
           }
 
           MouseArea {

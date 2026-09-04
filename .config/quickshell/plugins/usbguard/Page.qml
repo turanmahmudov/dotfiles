@@ -29,7 +29,7 @@ PanelPage {
       text: button.label
       color: button.strong ? Theme.accent : Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize - 5
+      font.pixelSize: Style.fontMicro
     }
 
     MouseArea {
@@ -41,9 +41,14 @@ PanelPage {
     }
   }
 
+  Placeholder {
+    visible: Usbg.entries.length === 0
+    text: "No USB devices"
+  }
+
   Column {
     width: parent.width
-    spacing: 4
+    spacing: Style.spaceTight
 
     Repeater {
       model: Usbg.entries
@@ -74,7 +79,7 @@ PanelPage {
           anchors.right: actions.left
           anchors.rightMargin: 8
           anchors.verticalCenter: parent.verticalCenter
-          spacing: 2
+          spacing: Style.spaceHair
 
           Text {
             width: parent.width
@@ -82,7 +87,7 @@ PanelPage {
             text: row.modelData.name
             color: Theme.fg
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 3
+            font.pixelSize: Style.fontCaption
             font.bold: true
           }
 
@@ -97,7 +102,7 @@ PanelPage {
             color: row.modelData.blocked ? Theme.urgent
                  : (row.modelData.saved ? Theme.accent : Theme.fgDim)
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 5
+            font.pixelSize: Style.fontMicro
           }
 
           Text {
@@ -106,7 +111,7 @@ PanelPage {
             text: row.modelData.vidpid + (row.modelData.port.length > 0 ? "  ·  port " + row.modelData.port : "")
             color: Theme.fgDim
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 6
+            font.pixelSize: Style.fontMicro
           }
         }
 
@@ -115,7 +120,7 @@ PanelPage {
           anchors.right: parent.right
           anchors.rightMargin: 8
           anchors.verticalCenter: parent.verticalCenter
-          spacing: 4
+          spacing: Style.spaceTight
 
           ActionButton {
             visible: row.modelData.blocked
@@ -152,6 +157,6 @@ PanelPage {
     text: "A new device is blocked until you allow it. Allow once lasts until you unplug it. Allow always saves a rule, works in every port and survives a restart."
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 5
+    font.pixelSize: Style.fontMicro
   }
 }

@@ -13,54 +13,22 @@ PanelPage {
 
   Component.onCompleted: Themes.refresh()
 
-  Row {
-    width: parent.width
-    spacing: 6
-
-    Repeater {
-      model: panel.modes
-
-      delegate: Rectangle {
-        id: modePill
-        required property var modelData
-        readonly property bool active: Themes.mode === modelData.key
-        readonly property bool available: Themes.hasMode(Themes.family, modelData.key)
-        width: (parent.width - 6) / 2
-        height: 34
-        radius: Style.radiusSmall
-        opacity: available ? 1 : 0.45
-        color: active ? Theme.alpha(Theme.accent, modeArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, modeArea.containsMouse ? 0.12 : 0.06)
-
-        Row {
-          anchors.centerIn: parent
-          spacing: 6
-
-          Icon {
-            anchors.verticalCenter: parent.verticalCenter
-            name: modePill.modelData.icon
-            color: modePill.active ? Theme.accent : Theme.fg
-            size: 16
-          }
-
-          Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: modePill.modelData.label
-            color: modePill.active ? Theme.accent : Theme.fg
-            font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 1
-          }
-        }
-
-        MouseArea {
-          id: modeArea
-          anchors.fill: parent
-          hoverEnabled: true
-          enabled: modePill.available
-          cursorShape: modePill.available ? Qt.PointingHandCursor : Qt.ArrowCursor
-          onClicked: Themes.setMode(modePill.modelData.key)
-        }
+  PillRow {
+    entries: {
+      var out = []
+      for (var i = 0; i < panel.modes.length; i++) {
+        var m = panel.modes[i]
+        out.push({
+          "key": m.key,
+          "label": m.label,
+          "icon": m.icon,
+          "available": Themes.hasMode(Themes.family, m.key)
+        })
       }
+      return out
     }
+    current: Themes.mode
+    onPicked: (key) => Themes.setMode(key)
   }
 
   SectionHeader {
@@ -69,7 +37,7 @@ PanelPage {
 
   Column {
     width: parent.width
-    spacing: 6
+    spacing: Style.spaceTight
 
     Repeater {
       model: Themes.families
@@ -82,7 +50,19 @@ PanelPage {
         width: parent.width
         height: 52
         radius: Style.radiusSmall
-        color: active ? Theme.alpha(Theme.accent, familyArea.containsMouse ? 0.28 : 0.2) : Theme.alpha(Theme.fg, familyArea.containsMouse ? 0.12 : 0.06)
+        color: active
+          ? Theme.alpha(Theme.accent, familyArea.containsMouse ? Style.cardActiveHoverAlpha : Style.cardActiveAlpha)
+          : Theme.alpha(Theme.fg, familyArea.containsMouse ? Style.cardHoverAlpha : Style.cardAlpha)
+        border.width: 1
+        border.color: active
+          ? Theme.alpha(Theme.accent, Style.cardActiveBorderAlpha)
+          : Theme.alpha(Theme.fg, Style.cardBorderAlpha)
+
+        Behavior on color {
+          ColorAnimation {
+            duration: Style.animFast
+          }
+        }
 
         Rectangle {
           id: thumbFrame
@@ -113,7 +93,7 @@ PanelPage {
           anchors.right: parent.right
           anchors.rightMargin: 10
           anchors.verticalCenter: parent.verticalCenter
-          spacing: 2
+          spacing: Style.spaceHair
 
           Text {
             width: parent.width
@@ -121,7 +101,7 @@ PanelPage {
             text: familyRow.modelData.displayName
             color: familyRow.active ? Theme.accent : Theme.fg
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 1
+            font.pixelSize: Style.fontBody
             font.bold: familyRow.active
           }
 
@@ -131,7 +111,7 @@ PanelPage {
             text: familyRow.modelData.modes.join("  ·  ")
             color: Theme.fgDim
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontSize - 3
+            font.pixelSize: Style.fontCaption
           }
         }
 

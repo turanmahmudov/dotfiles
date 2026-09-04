@@ -129,12 +129,19 @@ hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 --------------------------
 
 -- Volume & brightness (locked + repeating); the shell renders the OSD
-hl.bind("XF86AudioRaiseVolume", exec("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+hl.bind(
+    "XF86AudioRaiseVolume",
+    exec("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"),
+    { locked = true, repeating = true }
+)
 hl.bind("XF86AudioLowerVolume", exec("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
 hl.bind("XF86AudioMute", exec("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, repeating = true })
 hl.bind("XF86AudioMicMute", exec("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessUp", exec("brightnessctl set 5%+"), { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown", exec("brightnessctl set 5%-"), { locked = true, repeating = true })
+
+-- Display mode: cycles Join / Built-in / External
+hl.bind("XF86Display", exec("qs ipc call display tap"), { locked = true })
 
 -- Media (requires playerctl)
 hl.bind("XF86AudioNext", exec("playerctl next"), { locked = true })

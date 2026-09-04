@@ -58,7 +58,7 @@ BarItem {
   onClicked: openPanel()
 
   Row {
-    spacing: 4
+    spacing: Style.spaceTight
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter
@@ -71,7 +71,7 @@ BarItem {
       text: root.metricText
       color: root.hot ? Theme.urgent : (root.hovered ? Theme.fgDim : Theme.fg)
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize
+      font.pixelSize: Style.fontTitle
     }
   }
 }

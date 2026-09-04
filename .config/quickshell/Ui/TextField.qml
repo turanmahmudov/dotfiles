@@ -23,9 +23,11 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: Style.radiusSmall
-    color: Theme.alpha(Theme.fg, 0.05)
+    color: Theme.alpha(Theme.fg, Style.cardAlpha)
     border.width: 1
-    border.color: input.activeFocus ? Theme.alpha(Theme.accent, 0.5) : Theme.alpha(Theme.fg, 0.15)
+    border.color: input.activeFocus
+      ? Theme.alpha(Theme.accent, 0.5)
+      : Theme.alpha(Theme.fg, Style.surfaceBorderAlpha)
   }
 
   TextInput {
@@ -36,7 +38,7 @@ Item {
     verticalAlignment: TextInput.AlignVCenter
     color: Theme.fg
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 3
+    font.pixelSize: Style.fontCaption
     selectByMouse: true
     clip: true
 
@@ -53,6 +55,6 @@ Item {
     text: root.placeholder
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 3
+    font.pixelSize: Style.fontCaption
   }
 }

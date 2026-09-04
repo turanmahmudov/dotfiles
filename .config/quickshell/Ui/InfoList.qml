@@ -13,9 +13,9 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: Style.radiusSmall
-    color: Theme.alpha(Theme.fg, 0.035)
+    color: Theme.alpha(Theme.fg, Style.cardAlpha)
     border.width: 1
-    border.color: Theme.alpha(Theme.fg, 0.12)
+    border.color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
   }
 
   Column {

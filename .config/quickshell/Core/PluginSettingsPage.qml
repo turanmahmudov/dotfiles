@@ -28,7 +28,7 @@ PanelPage {
     text: "This plugin has no settings."
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 3
+    font.pixelSize: Style.fontCaption
   }
 
   Repeater {

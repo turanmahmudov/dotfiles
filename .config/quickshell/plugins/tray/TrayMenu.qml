@@ -66,7 +66,7 @@ PanelWindow {
     implicitHeight: listCol.implicitHeight + 8
     radius: Style.radiusSmall
     color: Theme.alpha(Theme.bg, Style.surfaceAlpha)
-    border.color: Theme.alpha(Theme.fg, 0.15)
+    border.color: Theme.alpha(Theme.fg, Style.surfaceBorderAlpha)
     border.width: 1
 
     TrayMenuList {

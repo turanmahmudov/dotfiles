@@ -11,34 +11,48 @@ PanelPage {
 
   Component.onCompleted: Vpn.refresh()
 
-  Row {
+  Rectangle {
     width: parent.width
-    spacing: 10
+    implicitHeight: vpnRow.implicitHeight + 20
+    height: implicitHeight
+    radius: Style.radiusSmall
+    color: Theme.alpha(Theme.fg, Style.cardAlpha)
+    border.width: 1
+    border.color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
 
-    Icon {
+    Row {
+      id: vpnRow
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.margins: 10
       anchors.verticalCenter: parent.verticalCenter
-      size: 26
-      name: Vpn.connected ? "shield-check" : "shield"
-      color: Vpn.connected ? Theme.success : Theme.fgDim
-    }
+      spacing: Style.space
 
-    Column {
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: 2
-
-      Text {
-        text: Vpn.connected ? "Connected" : "Not connected"
-        color: Theme.fg
-        font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize
-        font.bold: true
+      Icon {
+        anchors.verticalCenter: parent.verticalCenter
+        size: Style.iconLarge
+        name: Vpn.connected ? "shield-check" : "shield"
+        color: Vpn.connected ? Theme.success : Theme.fgDim
       }
 
-      Text {
-        text: "openconnect  ·  gp-vpn"
-        color: Theme.fgDim
-        font.family: Style.fontFamily
-        font.pixelSize: Style.fontSize - 3
+      Column {
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: Style.spaceHair
+
+        Text {
+          text: Vpn.connected ? "Connected" : "Not connected"
+          color: Theme.fg
+          font.family: Style.fontFamily
+          font.pixelSize: Style.fontTitle
+          font.bold: true
+        }
+
+        Text {
+          text: "openconnect  ·  gp-vpn"
+          color: Theme.fgDim
+          font.family: Style.fontFamily
+          font.pixelSize: Style.fontCaption
+        }
       }
     }
   }

@@ -81,7 +81,7 @@ PanelPage {
       property bool expanded: false
 
       width: parent.width
-      spacing: 8
+      spacing: Style.space
 
       ListRow {
         iconName: group.expanded ? "chevron-down" : "chevron-right"
@@ -93,7 +93,7 @@ PanelPage {
 
       Column {
         width: parent.width
-        spacing: 8
+        spacing: Style.space
         visible: group.expanded
 
         Repeater {
@@ -115,7 +115,7 @@ PanelPage {
     text: "Plugins"
     color: Theme.accent
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 4
+    font.pixelSize: Style.fontCaption
     font.bold: true
   }
 
@@ -126,7 +126,7 @@ PanelPage {
     text: "No plugin declares settings."
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 5
+    font.pixelSize: Style.fontMicro
   }
 
   InfoList {

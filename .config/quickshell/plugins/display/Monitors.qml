@@ -105,6 +105,7 @@ QtObject {
           "transform": m.transform || 0,
           "availableModes": m.availableModes || [],
           "vrr": !!m.vrr,
+          "mirrorOf": String(m.mirrorOf || "none"),
           "format": String(m.currentFormat || "")
         })
       }

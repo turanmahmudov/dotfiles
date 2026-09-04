@@ -10,7 +10,7 @@ BarItem {
   onClicked: Kb.cycleNext()
 
   Row {
-    spacing: 5
+    spacing: Style.spaceTight
 
     Icon {
       anchors.verticalCenter: parent.verticalCenter
@@ -23,7 +23,7 @@ BarItem {
       text: Hypr.kbLayout
       color: root.hovered ? Theme.fgDim : Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize
+      font.pixelSize: Style.fontTitle
     }
   }
 }

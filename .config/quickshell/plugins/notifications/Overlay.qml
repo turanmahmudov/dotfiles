@@ -28,7 +28,7 @@ PanelWindow {
   Column {
     id: col
     width: parent.width
-    spacing: 8
+    spacing: Style.space
 
     Repeater {
       model: Notifications.popups

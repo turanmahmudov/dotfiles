@@ -17,21 +17,14 @@ PanelPage {
     "opencode": "agent-opencode"
   })
 
-  Text {
+  Placeholder {
     visible: Agents.list.length === 0
-    width: parent.width
-    horizontalAlignment: Text.AlignHCenter
-    topPadding: 10
-    bottomPadding: 10
     text: "No agents"
-    color: Theme.fgDim
-    font.family: Style.fontFamily
-    font.pixelSize: Style.fontSize - 1
   }
 
   Column {
     width: parent.width
-    spacing: 6
+    spacing: Style.spaceTight
 
     Repeater {
       model: Agents.list

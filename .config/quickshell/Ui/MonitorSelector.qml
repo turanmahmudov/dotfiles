@@ -38,7 +38,7 @@ Item {
     height: labelText.implicitHeight + 18
     radius: Style.radius
     color: Theme.alpha(Theme.bg, Style.surfaceAlpha)
-    border.color: Theme.alpha(Theme.fg, 0.15)
+    border.color: Theme.alpha(Theme.fg, Style.surfaceBorderAlpha)
     border.width: 1
 
     Text {
@@ -47,7 +47,7 @@ Item {
       text: root.label
       color: Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontSize
+      font.pixelSize: Style.fontTitle
     }
   }
 }

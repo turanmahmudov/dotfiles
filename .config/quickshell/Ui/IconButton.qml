@@ -23,9 +23,15 @@ Item {
     anchors.fill: parent
     radius: Style.radiusSmall
     visible: btn.hovered
-    color: Theme.alpha(Theme.fg, 0.09)
+    color: Theme.alpha(Theme.fg, Style.cardHoverAlpha)
+
+    Behavior on color {
+      ColorAnimation {
+        duration: Style.animFast
+      }
+    }
     border.width: 1
-    border.color: Theme.alpha(Theme.fg, 0.12)
+    border.color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
   }
 
   Icon {
