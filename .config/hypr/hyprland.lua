@@ -94,6 +94,11 @@ hl.config({
         hide_on_key_press = true,
     },
 
+    render = {
+        direct_scanout = 2,
+        new_render_scheduling = true,
+    },
+
     -- See https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/ for more
     dwindle = {
         preserve_split = true, -- You probably want this
