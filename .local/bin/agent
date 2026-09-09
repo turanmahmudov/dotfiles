@@ -2,9 +2,9 @@
 # The state of the coding agents that run on this machine.
 #
 #   agent report <name> working|blocked|done|gone [learn]   an agent reports itself
-#   agent focus <key>                                       go to that agent
-#   agent list [session]                                    print the live agents
+#   agent focus <key> [client]                              go to that agent
 #   agent jump                                              pick one from a list
+#   agent list [session]                                    print the live agents
 #   agent send [key]                                        type stdin into that agent
 #
 # The agents are the only producers of the state: the Claude Code plugin and the opencode
@@ -25,6 +25,23 @@ tab=$(printf '\t')
 
 read_field() {
     awk -F'\t' -v want="$1" -v column="$2" '$1 == want { print $column }' "$file" 2>/dev/null || true
+}
+
+# A session that the background daemon hosts runs on a pty of its own, with no terminal
+# and no pane, so it can never be gone to. It is left out instead of listed as a row
+# that answers nothing.
+is_background() {
+    walk=${1:-0}
+    level=0
+    while [ "$level" -lt 8 ] && [ "$walk" -gt 1 ]; do
+        case $(tr '\0' ' ' <"/proc/$walk/cmdline" 2>/dev/null) in
+        *bg-pty-host* | *"daemon run"*) return 0 ;;
+        esac
+        walk=$(ps -o ppid= -p "$walk" 2>/dev/null | tr -d ' ')
+        [ -n "$walk" ] || break
+        level=$((level + 1))
+    done
+    return 1
 }
 
 # The first agent process above the caller. The hook runs under a short lived shell, and
@@ -53,6 +70,7 @@ report() {
 
     pane=${TMUX_PANE:-}
     pid=$(resolve_pid "$agent")
+    is_background "$pid" && exit 0
     key=${pane:-pid:$pid}
     title=${PWD##*/}
 
@@ -120,10 +138,39 @@ keep_live() {
         [ -n "$old_key" ] || continue
         [ "$old_key" != "${1:-}" ] || continue
         kill -0 "$old_pid" 2>/dev/null || continue
+        is_background "$old_pid" && continue
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
             "$old_key" "$old_agent" "$old_state" "$old_pid" "$old_pane" "$old_title" \
             "$old_window" "${old_place:--}" "${old_since:-0}"
     done <"$file"
+}
+
+# An agent in a pane can be reached, one outside tmux often cannot, and two of them can
+# carry the same title because the title is only the directory name. The reachable one
+# comes first, so a typed word picks the row that can actually be gone to.
+sort_by_reach() {
+    rows=$(cat)
+    printf '%s\n' "$rows" | awk -F'\t' '$5 != "-"'
+    printf '%s\n' "$rows" | awk -F'\t' '$5 == "-"'
+}
+
+# An agent reports itself only once it does something, so one that was started and left
+# alone is in no row yet. The panes say which agents exist, and a pane that reported
+# nothing is added as done, which is the state that asks for no attention.
+merge_panes() {
+    reported=$(cat)
+    printf '%s\n' "$reported"
+    command -v tmux >/dev/null 2>&1 || return 0
+    tmux list-panes -a -F "#{pane_id}${tab}#{pane_current_command}${tab}#{pane_current_path}${tab}#{session_name}:#{window_index}${tab}#{pane_pid}" 2>/dev/null |
+        while IFS="$tab" read -r pane program path place pane_pid; do
+            case $program in
+            claude | codex | opencode) ;;
+            *) continue ;;
+            esac
+            printf '%s\n' "$reported" | cut -f1 | grep -qx "$pane" && continue
+            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+                "$pane" "$program" done "$pane_pid" "$pane" "${path##*/}" - "$place" "$(date +%s)"
+        done
 }
 
 # An agent that is killed cannot report its own end, and the last one to die leaves nobody
@@ -139,6 +186,7 @@ list() {
         fi
         mv -f "$file.$$" "$file"
     fi
+    live=$(printf '%s\n' "$live" | merge_panes | sort_by_reach)
     [ -n "$live" ] || exit 0
     # A session name keeps the agents of that session, which also drops the agents that run
     # outside tmux, because their place is empty.
@@ -152,10 +200,18 @@ list() {
 
 focus() {
     key=${1:-}
+    want_client=${2:-}
     [ -n "$key" ] || exit 0
 
     pane=$(read_field "$key" 5)
     window=$(read_field "$key" 7)
+
+    # An agent found in a pane is in no row, because only a report writes one. Its key is
+    # the pane, so tmux can still name the target.
+    if [ "${pane:--}" = "-" ] && command -v tmux >/dev/null 2>&1 &&
+        tmux display -p -t "$key" '#{pane_id}' >/dev/null 2>&1; then
+        pane=$key
+    fi
 
     # Going to the agent answers the question the waiting mark asks, so the mark drops here.
     # It also frees a mark left behind by an agent that stopped reporting.
@@ -174,12 +230,17 @@ focus() {
 
         session=$(tmux display -p -t "$pane" '#{session_name}' 2>/dev/null || true)
         if [ -n "$session" ]; then
-            client=$(tmux list-clients -F "#{client_name}${tab}#{client_session}" 2>/dev/null |
-                awk -F'\t' -v want="$session" '$2 == want { print $1; exit }')
+            # The caller knows which screen asked, and with a phone attached the client on
+            # that session can be the phone, so a named client wins over the search.
+            client=$want_client
+            if [ -z "$client" ]; then
+                client=$(tmux list-clients -F "#{client_name}${tab}#{client_session}" 2>/dev/null |
+                    awk -F'\t' -v want="$session" '$2 == want { print $1; exit }')
+            fi
             [ -n "$client" ] || client=$(tmux list-clients -F '#{client_name}' 2>/dev/null | head -1)
             if [ -n "$client" ]; then
                 tmux switch-client -c "$client" -t "$session" 2>/dev/null || true
-                tmux select-window -t "$pane" 2>/dev/null || true
+                tmux select-window -c "$client" -t "$pane" 2>/dev/null || true
                 tmux select-pane -t "$pane" 2>/dev/null || true
             fi
             # tmux writes the session name into the terminal title, which names the window here.
@@ -223,10 +284,20 @@ pick() {
         fzf --ansi --delimiter="$tab" --with-nth=2.. ${3-} --header="${2:-go to agent}" || true
 }
 
+# A popup is no client of its own, and tmux resolves the current client of a popup to
+# whichever client it likes. TMUX names the session of the client that opened it, and
+# that is the screen that asked, which matters as soon as a second client is attached.
+resolve_client() {
+    want=$(printf '%s' "${TMUX:-}" | awk -F, '{ print $3 }')
+    [ -n "$want" ] || return 0
+    tmux list-clients -F "#{client_name}${tab}#{session_id}" 2>/dev/null |
+        awk -F'\t' -v want="\$$want" '$2 == want { print $1; exit }'
+}
+
 jump() {
     selected=$(pick "" "go to agent" --no-sort) || exit 0
     [ -n "$selected" ] || exit 0
-    focus "${selected%%"$tab"*}"
+    focus "${selected%%"$tab"*}" "$(resolve_client)"
 }
 
 # Text that the user wrote elsewhere, typed into the prompt of a running agent.
@@ -284,11 +355,11 @@ command=${1:-}
 case $command in
 report) report "$@" ;;
 focus) focus "$@" ;;
-list) list "$@" ;;
 jump) jump ;;
+list) list "$@" ;;
 send) send "$@" ;;
 *)
-    echo "usage: ${0##*/} report <name> <state> [learn] | focus <key> | list [session] | jump | send [key]" >&2
+    echo "usage: ${0##*/} report <name> <state> [learn] | focus <key> [client] | list [session] | jump | send [key]" >&2
     exit 1
     ;;
 esac

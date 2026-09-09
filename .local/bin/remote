@@ -1,0 +1,153 @@
+#!/bin/sh
+# The tmux sessions of the other machines on the tailnet.
+#
+#   remote pick         pick a session on another machine and attach to it
+#   remote snapshot     the sessions of this machine, one per line
+#   remote peers        the other machines, and why one does not answer
+#
+# One line per session: device, name, attached, windows, activity.
+# The machines are the online tailnet peers that can run a shell. Nothing is configured:
+# tailscale names them, and tailscaled answers the ssh, so no key is involved.
+set -eu
+
+tab=$(printf '\t')
+control_dir=${XDG_RUNTIME_DIR:-/tmp}/remote-ssh
+remote_bin=${REMOTE_BIN:-'~/.local/bin/remote'}
+
+# The connection is shared, so asking a machine again costs a round trip and no handshake.
+ask() {
+    host=$1
+    mkdir -p "$control_dir"
+    ssh -4 -o BatchMode=yes -o ConnectTimeout=3 -o StrictHostKeyChecking=accept-new \
+        -o ControlMaster=auto -o "ControlPath=$control_dir/%r@%h:%p" -o ControlPersist=120 \
+        "$host" "$remote_bin snapshot"
+}
+
+snapshot() {
+    device=$(hostname)
+    tmux list-sessions -F \
+        "#{session_name}${tab}#{?session_attached,1,0}${tab}#{session_windows}${tab}#{session_activity}" \
+        2>/dev/null |
+        while IFS="$tab" read -r name attached windows activity; do
+            [ -n "$name" ] || continue
+            printf '%s\t%s\t%s\t%s\t%s\n' "$device" "$name" "$attached" "$windows" "$activity"
+        done
+}
+
+peers() {
+    command -v tailscale >/dev/null 2>&1 || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    tailscale status --json 2>/dev/null | jq -r '
+        .Peer[]?
+        | select(.Online == true)
+        | select(.OS == "linux" or .OS == "macOS" or .OS == "windows")
+        | .TailscaleIPs[0] // empty' 2>/dev/null || true
+}
+
+format_ago() {
+    awk -v seconds="$1" 'BEGIN {
+        if (seconds < 60) printf "%ds", seconds
+        else if (seconds < 3600) printf "%dm", seconds / 60
+        else if (seconds < 86400) printf "%dh", seconds / 3600
+        else printf "%dd", seconds / 86400
+    }'
+}
+
+# Key fields first, so fzf shows only the readable part and the caller keeps the target.
+rows() {
+    now=$(date +%s)
+    for host in $(peers); do
+        ask "$host" 2>/dev/null |
+            while IFS="$tab" read -r device name attached windows activity; do
+                [ -n "$device" ] || continue
+                if [ "$windows" = 1 ]; then count="1 window"; else count="$windows windows"; fi
+                if [ "$attached" = 1 ]; then here=attached; else here=""; fi
+                age=$(format_ago "$((now - activity))")
+                printf '%s\t%s\t%s\t\033[34m▪\033[0m %-16s %-18s %-11s %-9s %s\n' \
+                    "$host" "$device" "$name" "$name" "$device" "$count" "$here" "$age"
+            done
+    done
+}
+
+# A popup is no client of its own, and tmux resolves the current client of a popup to
+# whichever client it likes. TMUX names the session of the client that opened it, and
+# that is the screen that asked, which matters as soon as a second client is attached.
+resolve_client() {
+    want=$(printf '%s' "${TMUX:-}" | awk -F, '{ print $3 }')
+    [ -n "$want" ] || return 0
+    tmux list-clients -F "#{client_name}${tab}#{session_id}" 2>/dev/null |
+        awk -F"$tab" -v want="\$$want" '$2 == want { print $1; exit }'
+}
+
+# The semicolon has to survive the remote shell and reach tmux, and a leading = would be
+# an equals expansion in zsh, so the target is quoted for the shell on the other side.
+attach() {
+    host=$1
+    device=$2
+    name=$3
+
+    client=$(resolve_client)
+    [ -n "$client" ] || return 0
+    session=$(tmux display -p -t "$client" '#{client_session}' 2>/dev/null || true)
+    [ -n "$session" ] || return 0
+
+    command="ssh -4 -t -o BatchMode=yes -o ConnectTimeout=3 -o StrictHostKeyChecking=accept-new"
+    command="$command -o ControlMaster=auto -o ControlPath=$control_dir/%r@%h:%p -o ControlPersist=120"
+    command="$command $host \"tmux attach-session -t '=$name'\""
+
+    # Every machine gets a local session of its own, and each of its sessions is one
+    # window in it, so the session list stays readable next to the local work.
+    local_session="remote-$device"
+    if tmux has-session -t "=$local_session" 2>/dev/null; then
+        window=$(tmux list-windows -t "=$local_session" -F "#{window_name}${tab}#{window_id}" |
+            awk -F"$tab" -v want="$name" '$1 == want { print $2; exit }')
+        [ -n "$window" ] ||
+            window=$(tmux new-window -d -t "=$local_session" -n "$name" -P -F '#{window_id}' "$command")
+    else
+        window=$(tmux new-session -d -s "$local_session" -n "$name" -P -F '#{window_id}' "$command")
+    fi
+
+    tmux switch-client -c "$client" -t "=$local_session"
+    tmux select-window -c "$client" -t "$window"
+}
+
+pick() {
+    listing=$(rows)
+    if [ -z "$listing" ]; then
+        echo "no session on another machine" >&2
+        exit 1
+    fi
+    selected=$(printf '%s\n' "$listing" |
+        fzf --ansi --delimiter="$tab" --with-nth=4.. --no-sort \
+            --header="attach a session on another machine") || exit 0
+    [ -n "$selected" ] || exit 0
+    attach "$(printf '%s' "$selected" | cut -f1)" \
+        "$(printf '%s' "$selected" | cut -f2)" \
+        "$(printf '%s' "$selected" | cut -f3)"
+}
+
+report_peers() {
+    found=""
+    for host in $(peers); do
+        found=yes
+        count=$(ask "$host" 2>/dev/null | grep -c . || true)
+        if [ "$count" -gt 0 ]; then
+            printf '%s\t%s sessions\n' "$host" "$count"
+        else
+            printf '%s\tno answer\n' "$host"
+        fi
+    done
+    [ -n "$found" ] || echo "no other machine online" >&2
+}
+
+command=${1:-pick}
+[ "$#" -eq 0 ] || shift
+case $command in
+pick) pick ;;
+snapshot) snapshot ;;
+peers) report_peers ;;
+*)
+    echo "usage: ${0##*/} pick | snapshot | peers" >&2
+    exit 1
+    ;;
+esac
