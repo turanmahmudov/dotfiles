@@ -143,4 +143,5 @@ hl.layer_rule({ match = { namespace = "quickshell-popup" }, blur = true, ignore_
 hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true, ignore_alpha = 0 })
 hl.layer_rule({ match = { namespace = "quickshell-osd" }, blur = true, ignore_alpha = 0 })
 hl.layer_rule({ match = { namespace = "quickshell-polkit" }, blur = true, ignore_alpha = 0 })
+hl.layer_rule({ match = { namespace = "quickshell-session" }, blur = true, ignore_alpha = 0 })
 hl.layer_rule({ match = { namespace = "vicinae" }, blur = true, ignore_alpha = 0, no_anim = true })

@@ -3,7 +3,8 @@ import Quickshell
 import qs.Commons
 import qs.Ui
 
-// Square button for one session command. It closes the panel before it runs.
+// Square button for one session command. It closes the panel before it runs. A
+// command with a confirmMessage goes to the overlay, which asks before it runs.
 Rectangle {
   id: root
 
@@ -12,6 +13,7 @@ Rectangle {
   property string label: ""
   property string command: ""
   property bool danger: false
+  property string confirmMessage: ""
 
   implicitHeight: 46
   height: implicitHeight
@@ -27,6 +29,10 @@ Rectangle {
   function runCommand() {
     if (root.controller)
       root.controller.close()
+    if (root.confirmMessage.length > 0) {
+      Session.ask(root.iconName, root.label, root.confirmMessage, root.command, root.danger)
+      return
+    }
     Quickshell.execDetached(["sh", "-c", root.command])
   }
 

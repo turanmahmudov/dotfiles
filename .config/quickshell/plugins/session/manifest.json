@@ -4,6 +4,8 @@
     "lock": { "surface": "cc", "file": "CcLock.qml" },
     "suspend": { "surface": "cc", "file": "CcSuspend.qml" },
     "logout": { "surface": "cc", "file": "CcLogout.qml" },
+    "restart": { "surface": "cc", "file": "CcRestart.qml" },
     "power": { "surface": "cc", "file": "CcPower.qml" }
-  }
+  },
+  "overlay": { "file": "Overlay.qml" }
 }

@@ -151,7 +151,7 @@
       },
       {
         "type": "grid",
-        "columns": 4,
+        "columns": 5,
         "items": [
           {
             "id": "shell.session:lock"
@@ -161,6 +161,9 @@
           },
           {
             "id": "shell.session:logout"
+          },
+          {
+            "id": "shell.session:restart"
           },
           {
             "id": "shell.session:power"
