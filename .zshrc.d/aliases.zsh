@@ -8,6 +8,8 @@ alias vim=nvim
 alias vi=nvim
 alias v=nvim
 
+alias lg=lazygit
+
 alias ll='ls -lh'
 alias la='ls -lAh'
 alias ldot='ls -ld .*'

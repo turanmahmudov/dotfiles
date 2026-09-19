@@ -2,9 +2,13 @@ os:
   editPreset: "nvim-remote"
 gui:
   nerdFontsVersion: "3"
+git:
+  diffRenderers:
+    - colorArg: always
+      command: delta --paging=never
 customCommands:
   - key: "<c-g>"
     context: "global"
     description: "Review the diff"
-    command: '${GIT_REVIEW:-tuicr -w}'
+    command: "${GIT_REVIEW:-tuicr -w}"
     output: terminal

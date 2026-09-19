@@ -145,6 +145,7 @@ mise use --global awscli
 mise use --global zig
 mise use --global fzf
 mise use --global ripgrep
+mise use --global delta
 mise use --global "github:cli/cli[exe=gh]"
 mise reshim
 
