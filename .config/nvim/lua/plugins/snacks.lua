@@ -109,13 +109,6 @@ return {
         end,
         desc = 'Lazygit',
       },
-      {
-        '<leader>gr',
-        function()
-          Snacks.terminal(vim.env.GIT_REVIEW or 'tuicr -w', { win = { position = 'float' } })
-        end,
-        desc = 'Review Diff',
-      },
       -- Picker
       {
         '<leader>sh',

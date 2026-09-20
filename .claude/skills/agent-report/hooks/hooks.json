@@ -1,7 +1,7 @@
 {
   "hooks": {
     "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "~/.local/bin/agent report claude working learn" }] }
+      { "hooks": [{ "type": "command", "command": "~/.local/bin/agent report claude working" }] }
     ],
     "PermissionRequest": [
       { "hooks": [{ "type": "command", "command": "~/.local/bin/agent report claude blocked" }] }
