@@ -136,6 +136,7 @@ mise config set env._.php.prebuilt_static_flavor bulk
 mise use --global php@8.5
 mise use --global claude
 mise use --global opencode
+mise use --global codex
 mise use --global tree-sitter
 mise use --global lazygit
 mise use --global lazydocker
