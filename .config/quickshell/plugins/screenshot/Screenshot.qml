@@ -18,7 +18,19 @@ QtObject {
   property int countdown: 0
   property string pendingGeometry: ""
   property string lastPath: ""
-  property string picturesDir: Quickshell.env("HOME") + "/Pictures"
+  readonly property string defaultDir: "~/Pictures/Screenshots"
+  readonly property var settings: ConfigStore.readPluginSettings("shell.screenshot")
+  readonly property string picturesDir: expandHome(settings.dir && String(settings.dir).trim().length > 0
+    ? String(settings.dir).trim() : defaultDir)
+
+  function expandHome(p) {
+    var home = Quickshell.env("HOME")
+    if (p === "~")
+      return home
+    if (p.indexOf("~/") === 0)
+      return home + p.substring(1)
+    return p
+  }
 
   function normalizeMode(m) {
     if (m === "window" || m === "monitor" || m === "region")
@@ -144,18 +156,6 @@ QtObject {
         root.sendNotification()
       else
         console.warn("Screenshot: capture failed with code", code)
-    }
-  }
-
-  property Process dirProc: Process {
-    command: ["xdg-user-dir", "PICTURES"]
-    running: true
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var d = text.trim()
-        if (d && d.length > 0)
-          root.picturesDir = d
-      }
     }
   }
 

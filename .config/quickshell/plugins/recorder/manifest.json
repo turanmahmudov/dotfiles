@@ -20,6 +20,12 @@
           "label": "Whole screen"
         }
       ]
+    },
+    {
+      "key": "dir",
+      "type": "text",
+      "label": "Save folder",
+      "default": "~/Videos"
     }
   ],
   "widgets": {

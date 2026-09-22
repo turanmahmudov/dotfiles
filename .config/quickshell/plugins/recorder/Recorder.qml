@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.Services
 
 QtObject {
   id: root
@@ -13,7 +14,19 @@ QtObject {
   property bool withAudio: false
   property int elapsed: 0
   property string lastPath: ""
-  property string videosDir: Quickshell.env("HOME") + "/Videos"
+  readonly property string defaultDir: "~/Videos"
+  readonly property var settings: ConfigStore.readPluginSettings("shell.recorder")
+  readonly property string videosDir: expandHome(settings.dir && String(settings.dir).trim().length > 0
+    ? String(settings.dir).trim() : defaultDir)
+
+  function expandHome(p) {
+    var home = Quickshell.env("HOME")
+    if (p === "~")
+      return home
+    if (p.indexOf("~/") === 0)
+      return home + p.substring(1)
+    return p
+  }
 
   readonly property string elapsedLabel: {
     var m = Math.floor(root.elapsed / 60)
@@ -147,18 +160,6 @@ QtObject {
     repeat: true
     running: root.recording
     onTriggered: root.elapsed = root.elapsed + 1
-  }
-
-  property Process dirProc: Process {
-    command: ["xdg-user-dir", "VIDEOS"]
-    running: true
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var d = text.trim()
-        if (d.length > 0)
-          root.videosDir = d
-      }
-    }
   }
 
   property IpcHandler ipc: IpcHandler {
