@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+
+terms="${GIT_PRIVATE_TERMS:-$HOME/.agents/private-terms}"
+[ -s "$terms" ] || exit 0
+
+report=$(git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file; do
+    hits=$(git diff --cached -U0 --no-color -- "$file" | sed -n 's/^+\([^+]\)/\1/p' | grep -inFf "$terms" || true)
+    name_hit=$(printf '%s\n' "$file" | grep -iFf "$terms" || true)
+    if [ -n "$hits" ] || [ -n "$name_hit" ]; then
+        printf 'private text in %s\n' "$file"
+        [ -z "$hits" ] || printf '%s\n' "$hits" | sed 's/^/  /'
+    fi
+done)
+
+[ -z "$report" ] || { printf '%s\nCommit refused: remove the private text, or move it to an untracked file.\n' "$report" >&2; exit 1; }

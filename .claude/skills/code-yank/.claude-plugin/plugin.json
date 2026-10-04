@@ -1,0 +1,1 @@
+{ "name": "code-yank", "version": "0.1.0", "description": "Copy a code block of the last reply to the clipboard with one key", "types": "./types/index.d.ts" }

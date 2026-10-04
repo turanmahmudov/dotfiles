@@ -1,0 +1,1 @@
+{ "name": "agents-sync", "version": "0.1.0", "description": "Links the shared skills from ~/.agents/skills into ~/.claude/skills at session start" }

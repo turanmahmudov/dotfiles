@@ -1,0 +1,1 @@
+{ "name": "aside", "version": "0.1.0", "description": "A side pane for questions about the session, answered from a fork of the transcript and kept out of it", "types": "./types/index.d.ts" }

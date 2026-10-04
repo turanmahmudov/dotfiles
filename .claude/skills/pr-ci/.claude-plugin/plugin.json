@@ -1,0 +1,9 @@
+{
+  "name": "pr-ci",
+  "version": "0.2.0",
+  "description": "A pane with the PRs this session created and the open PRs of this repo, with live CI checks; a failed check log goes into the prompt with one key",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "repoPrAuthor": { "type": "string", "title": "Repo PR author", "description": "Whose open PRs of this repo to show (gh --author); empty shows all", "default": "@me" }
+  }
+}

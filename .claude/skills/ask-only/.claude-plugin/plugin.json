@@ -1,0 +1,1 @@
+{ "name": "ask-only", "version": "0.1.0", "description": "A prompt that starts with ? runs as a read-only turn: tools that change state are blocked", "types": "./types/index.d.ts" }

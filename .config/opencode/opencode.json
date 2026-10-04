@@ -23,7 +23,14 @@
     },
     "atlassian": {
       "type": "remote",
-      "url": "https://mcp.atlassian.com/v1/sse",
+      "url": "https://mcp.atlassian.com/v2/mcp"
+    },
+    "masume": {
+      "type": "local",
+      "command": [
+        "masume",
+        "--mcp"
+      ],
       "enabled": true
     }
   },
