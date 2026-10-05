@@ -41,7 +41,6 @@ sudo apt-get install -y \
     zsh \
     git \
     curl \
-    pipx \
     kitty \
     foot \
     btop \
@@ -125,6 +124,7 @@ if ! command -v tailscale > /dev/null 2>&1; then
 fi
 
 # Mise
+mise use --global pipx
 mise use --global node@24
 mise use --global bun
 mise settings ruby.compile = false

@@ -1,6 +1,16 @@
 #!/bin/sh
 echo "Installing Personal Dependencies"
 
+# Hyprland PPA
+if ! grep -q "cppiber/hyprland/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+    sudo add-apt-repository -y ppa:cppiber/hyprland
+fi
+
+# Quickshell PPA
+if ! grep -q "avengemedia/danklinux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+    sudo add-apt-repository -y ppa:avengemedia/danklinux
+fi
+
 sudo apt-get update -qq
 
 # Deb packages
@@ -9,38 +19,68 @@ sudo apt-get install -y \
     zsh \
     git \
     curl \
-    pipx \
+    kitty \
     btop \
     fastfetch \
     tmux \
-    docker.io \
+    quickshell \
+    hyprland hypridle hyprlock hyprsunset \
+    hyprland-qt-support0 \
+    xdg-desktop-portal-hyprland \
+    pipewire wireplumber \
+    network-manager bluez \
+    brightnessctl \
+    ddcutil \
+    playerctl \
+    jq \
+    tree \
+    docker.io docker-buildx docker-compose \
+    slurp grim wf-recorder \
+    wl-clipboard cliphist \
     syncthing
 
 # Snap packages
 sudo snap install nvim --classic
+sudo snap install code --classic
 sudo snap install obsidian --classic
 sudo snap install spotify
 sudo snap install bitwarden
+sudo snap install bw
 
 # Binary packages
 if ! command -v getnf >/dev/null 2>&1; then
     curl -fsSL https://raw.githubusercontent.com/ronniedroid/getnf/master/install.sh | bash
 fi
-if ! command -v mise &> /dev/null; then
+if ! command -v vicinae > /dev/null 2>&1; then
+    curl -fsSL https://vicinae.com/install.sh | bash
+fi
+if ! command -v mise > /dev/null 2>&1; then
     curl https://mise.run | sh
 fi
-
-# Mise
-mise use --global node@24
-mise use --global ruby@4
-mise use --global go@1.25
-mise use --global opencode
-mise use --global lazygit
-mise use --global lazydocker
-mise use --global fzf
-mise use --global ripgrep
-mise reshim
-
 if ! command -v tailscale > /dev/null 2>&1; then
     curl -fsSL https://tailscale.com/install.sh | sh
 fi
+
+# Mise
+mise use --global pipx
+mise use --global node@24
+mise use --global bun
+mise settings ruby.compile = false
+mise use --global ruby@4
+mise use --global go@1.25
+mise plugin install php https://github.com/verzly/mise-php#latest
+mise config set env._.php.prebuilt_static true
+mise config set env._.php.prebuilt_static_flavor bulk
+mise use --global php@8.5
+mise use --global claude
+mise use --global opencode
+mise use --global tree-sitter
+mise use --global lazygit
+mise use --global lazydocker
+mise use --global zig
+mise use --global fzf
+mise use --global ripgrep
+mise use --global delta # git syntax highlighting pager
+mise use --global "github:cli/cli[exe=gh]"
+mise reshim
+
