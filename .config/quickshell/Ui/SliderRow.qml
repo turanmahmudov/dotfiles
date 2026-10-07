@@ -68,7 +68,7 @@ Item {
     text: root.valueText
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontMicro
+    font.pixelSize: Style.fontCaption
   }
 
   Slider {

@@ -133,7 +133,7 @@ Column {
     text: "Field type " + root.type + " has no editor yet."
     color: Theme.warning
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontMicro
+    font.pixelSize: Style.fontCaption
   }
 
   Text {
@@ -143,6 +143,6 @@ Column {
     text: root.field.hint ? root.field.hint : ""
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontMicro
+    font.pixelSize: Style.fontCaption
   }
 }

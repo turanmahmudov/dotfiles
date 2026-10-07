@@ -137,7 +137,7 @@ Column {
       text: Math.round((stream.ready ? stream.node.audio.volume : 0) * 100) + "%"
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontMicro
+      font.pixelSize: Style.fontCaption
     }
 
     Slider {

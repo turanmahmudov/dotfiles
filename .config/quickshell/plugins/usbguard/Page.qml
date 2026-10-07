@@ -29,7 +29,7 @@ PanelPage {
       text: button.label
       color: button.strong ? Theme.accent : Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontMicro
+      font.pixelSize: Style.fontCaption
     }
 
     MouseArea {
@@ -102,7 +102,7 @@ PanelPage {
             color: row.modelData.blocked ? Theme.urgent
                  : (row.modelData.saved ? Theme.accent : Theme.fgDim)
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontMicro
+            font.pixelSize: Style.fontCaption
           }
 
           Text {
@@ -111,7 +111,7 @@ PanelPage {
             text: row.modelData.vidpid + (row.modelData.port.length > 0 ? "  ·  port " + row.modelData.port : "")
             color: Theme.fgDim
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontMicro
+            font.pixelSize: Style.fontCaption
           }
         }
 
@@ -157,6 +157,6 @@ PanelPage {
     text: "A new device is blocked until you allow it. Allow once lasts until you unplug it. Allow always saves a rule, works in every port and survives a restart."
     color: Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontMicro
+    font.pixelSize: Style.fontCaption
   }
 }

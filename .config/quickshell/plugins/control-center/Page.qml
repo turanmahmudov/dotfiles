@@ -129,7 +129,7 @@ PanelPage {
       text: "Drag the items, then confirm"
       color: Theme.accent
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontMicro
+      font.pixelSize: Style.fontCaption
     }
 
     IconButton {

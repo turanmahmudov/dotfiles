@@ -189,7 +189,7 @@ Item {
         text: widget.widgetLabel
         color: Theme.fgDim
         font.family: Style.fontFamily
-        font.pixelSize: Style.fontMicro
+        font.pixelSize: Style.fontCaption
       }
     }
 
@@ -250,7 +250,7 @@ Item {
     text: zone.title
     color: zone.dropIndex >= 0 ? Theme.accent : Theme.fgDim
     font.family: Style.fontFamily
-    font.pixelSize: Style.fontMicro
+    font.pixelSize: Style.fontCaption
   }
 
   Row {

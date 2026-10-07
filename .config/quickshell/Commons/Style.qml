@@ -24,9 +24,8 @@ QtObject {
   // Type scale. Panels pick a role, not an offset, so hierarchy is designed in
   // one place instead of chosen again at every call site.
   readonly property int fontTitle: root.fontSize            // panel and card titles
-  readonly property int fontBody: root.fontSize - 2         // row labels, buttons
-  readonly property int fontCaption: root.fontSize - 4      // secondary lines, values
-  readonly property int fontMicro: root.fontSize - 6        // dense detail
+  readonly property int fontBody: root.fontSize - 1         // row labels, buttons
+  readonly property int fontCaption: root.fontSize - 3      // secondary lines, values
 
   // Icon scale, matched to the type scale.
   readonly property int iconTiny: 14

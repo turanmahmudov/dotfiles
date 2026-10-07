@@ -106,7 +106,7 @@ Item {
       text: root.sublabel
       color: Theme.fgDim
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontMicro
+      font.pixelSize: Style.fontCaption
     }
   }
 
