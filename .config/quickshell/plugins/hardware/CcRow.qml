@@ -9,7 +9,6 @@ InfoRow {
 
   iconName: "gauge"
   label: "System stats"
-  sublabel: SystemStats.temp >= 80 ? "Running hot" : "No warnings"
   value: Nvidia.awake
     ? (SystemStats.cpu + "% CPU  ·  " + Nvidia.util + "% GPU")
     : (SystemStats.cpu + "% CPU")

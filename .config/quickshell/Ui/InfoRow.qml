@@ -25,7 +25,7 @@ Item {
     && parent.children[parent.children.length - 1] === root
 
   width: parent ? parent.width : implicitWidth
-  implicitHeight: 46
+  implicitHeight: root.sublabel.length > 0 ? 46 : Style.rowHeight
   height: implicitHeight
 
   // The end rows follow the list's rounded corners, otherwise the highlight
@@ -100,7 +100,7 @@ Item {
       text: root.label
       color: Theme.fg
       font.family: Style.fontFamily
-      font.pixelSize: Style.fontCaption
+      font.pixelSize: root.sublabel.length > 0 ? Style.fontCaption : Style.fontLabel
       font.bold: true
     }
 

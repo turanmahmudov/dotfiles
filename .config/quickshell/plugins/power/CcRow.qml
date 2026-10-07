@@ -18,7 +18,6 @@ InfoRow {
 
   iconName: Icons.battery(Battery.percent, Battery.charging)
   label: "Battery"
-  sublabel: Battery.timeSummary.length > 0 ? Battery.timeSummary : (Battery.charging ? "Charging" : "On battery")
   value: Battery.present ? (Battery.percent + "%  ·  " + root.shortProfile) : root.shortProfile
   onClicked: if (root.controller) root.controller.go(root.pluginId)
 }

@@ -29,6 +29,7 @@ QtObject {
   // one place instead of chosen again at every call site.
   readonly property int fontTitle: root.fontSize            // panel and card titles
   readonly property int fontBody: root.fontSize - 1         // row labels, buttons
+  readonly property int fontLabel: root.fontSize - 2        // list row titles
   readonly property int fontCaption: root.fontSize - 3      // secondary lines, values
 
   // Icon scale, matched to the type scale.
