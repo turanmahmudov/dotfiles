@@ -140,7 +140,10 @@ PanelWindow {
       enterAnim.start()
     } else {
       enterAnim.stop()
-      exitAnim.start()
+      if (panel.presence <= 0)
+        panel.closeFinished()
+      else
+        exitAnim.start()
     }
   }
 
