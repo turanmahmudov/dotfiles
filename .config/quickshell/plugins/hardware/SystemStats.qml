@@ -16,11 +16,24 @@ QtObject {
   property real netDown: 0
   property real netUp: 0
 
+  readonly property int historyLength: 60
+  property var cpuHistory: []
+  property var memHistory: []
+  property var tempHistory: []
+  property var netDownHistory: []
+  property var netUpHistory: []
+
   property int _prevIdle: 0
   property int _prevTotal: 0
   property real _prevRx: 0
   property real _prevTx: 0
   property real _prevUp: 0
+
+  function appendSample(list, value) {
+    var next = list.slice(-(root.historyLength - 1))
+    next.push(value)
+    return next
+  }
 
   function toInt(s) {
     var n = parseInt(s)
@@ -38,8 +51,10 @@ QtObject {
       total += root.toInt(p[i])
     var di = idle - root._prevIdle
     var dt = total - root._prevTotal
-    if (dt > 0 && root._prevTotal > 0)
+    if (dt > 0 && root._prevTotal > 0) {
       root.cpu = Math.max(0, Math.min(100, Math.round(100 * (1 - di / dt))))
+      root.cpuHistory = root.appendSample(root.cpuHistory, root.cpu)
+    }
     root._prevIdle = idle
     root._prevTotal = total
   }
@@ -57,6 +72,7 @@ QtObject {
       root.mem = Math.round((tot - av) * 100 / tot)
       root.memTotalGb = tot / 1048576
       root.memUsedGb = (tot - av) / 1048576
+      root.memHistory = root.appendSample(root.memHistory, root.mem)
     }
   }
 
@@ -89,6 +105,8 @@ QtObject {
       var span = up - root._prevUp
       root.netDown = Math.max(0, (curRx - root._prevRx) / span)
       root.netUp = Math.max(0, (curTx - root._prevTx) / span)
+      root.netDownHistory = root.appendSample(root.netDownHistory, root.netDown)
+      root.netUpHistory = root.appendSample(root.netUpHistory, root.netUp)
     }
     root._prevRx = curRx
     root._prevTx = curTx
@@ -102,6 +120,7 @@ QtObject {
     if (String(tempFile.path).length > 0) {
       tempFile.reload()
       root.temp = Math.round(root.toInt(tempFile.text()) / 1000)
+      root.tempHistory = root.appendSample(root.tempHistory, root.temp)
     }
     upFile.reload()
     var up = parseFloat(upFile.text()) || 0

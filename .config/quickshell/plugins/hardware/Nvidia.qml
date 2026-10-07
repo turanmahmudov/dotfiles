@@ -32,6 +32,7 @@ QtObject {
   property int linkWidth: 0
 
   property var processes: []
+  property var utilHistory: []
 
   readonly property int memPercent: root.memTotalMb > 0
     ? Math.round(root.memUsedMb * 100 / root.memTotalMb) : 0
@@ -76,12 +77,20 @@ QtObject {
     root.processes = []
   }
 
+  function appendUtil(value) {
+    var next = root.utilHistory.slice(-(SystemStats.historyLength - 1))
+    next.push(value)
+    root.utilHistory = next
+  }
+
   function parseStats(out) {
     var lines = String(out).split("\n")
     var head = lines[0] ? lines[0].trim() : ""
     if (head !== "ok") {
       root.state = (head === "sleep") ? "sleep" : "none"
       root.clear()
+      if (root.state === "sleep")
+        root.appendUtil(0)
       return
     }
     var f = (lines[1] || "").split(",")
@@ -111,6 +120,7 @@ QtObject {
     root.pstate = f[15]
     root.linkGen = root.toInt(f[16])
     root.linkWidth = root.toInt(f[17])
+    root.appendUtil(root.util)
   }
 
   function parseProcesses(out) {
