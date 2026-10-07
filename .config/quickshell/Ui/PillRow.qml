@@ -72,7 +72,7 @@ Item {
             text: pill.modelData.label || ""
             color: pill.active ? Theme.accent : Theme.fg
             font.family: Style.fontFamily
-            font.pixelSize: Style.fontBody
+            font.pixelSize: Style.fontLabel
           }
         }
 
