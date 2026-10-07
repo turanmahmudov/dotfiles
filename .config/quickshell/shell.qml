@@ -34,12 +34,18 @@ ShellRoot {
     }
   }
 
-  // The one panel surface. It exists only while a page is open.
+  // The one panel surface. It exists while a page is open and until the close animation ends.
   Loader {
-    active: panelController.page.length > 0
+    id: panelLoader
+
+    property bool keepAlive: false
+
+    active: panelController.page.length > 0 || panelLoader.keepAlive
+    onLoaded: panelLoader.keepAlive = true
 
     sourceComponent: ShellPanel {
       controller: panelController
+      onCloseFinished: panelLoader.keepAlive = false
     }
   }
 }

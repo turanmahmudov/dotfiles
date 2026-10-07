@@ -18,6 +18,10 @@ QtObject {
   property real surfaceAlpha: 0.9
   property int animFast: 140
   property int anim: 180
+  property int animPanelIn: 160
+  property int animPanelOut: 120
+  property int panelShift: 6
+  property int pageShift: 10
   property real barBackgroundAlpha: 0
   property int barMargin: 0
 

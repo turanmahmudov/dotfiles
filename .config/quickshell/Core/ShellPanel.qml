@@ -14,7 +14,18 @@ PanelWindow {
 
   property var controller: null
 
-  readonly property string pageId: controller ? controller.page : ""
+  // The last page stays loaded while the panel fades out after a close.
+  property string lastPageId: ""
+  readonly property string pageId: (controller && controller.page.length > 0) ? controller.page : lastPageId
+  onPageIdChanged: lastPageId = pageId
+
+  readonly property bool shown: !!controller && controller.page.length > 0
+  signal closeFinished()
+
+  property real presence: 0
+  property real pageOffset: 0
+  property real pageOpacity: 1
+  property int trailLength: controller ? controller.history.length : 0
   readonly property bool onHome: controller ? (pageId === controller.homePage) : false
   readonly property Item anchorItem: controller ? controller.anchorItem : null
   readonly property var anchorWin: anchorItem ? anchorItem.QsWindow.window : null
@@ -63,7 +74,7 @@ PanelWindow {
   color: "transparent"
   WlrLayershell.namespace: "quickshell-popup"
   WlrLayershell.layer: WlrLayer.Overlay
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+  WlrLayershell.keyboardFocus: panel.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
   exclusiveZone: 0
   implicitWidth: Style.panelWidth + 2
   implicitHeight: Math.max(wantHeight, 1)
@@ -81,8 +92,76 @@ PanelWindow {
   onFollowsAnchorChanged: repositionUnderAnchor()
   onAnchorWinChanged: repositionUnderAnchor()
 
+  NumberAnimation {
+    id: enterAnim
+    target: panel
+    property: "presence"
+    to: 1
+    duration: Style.animPanelIn
+    easing.type: Easing.OutCubic
+  }
+
+  NumberAnimation {
+    id: exitAnim
+    target: panel
+    property: "presence"
+    to: 0
+    duration: Style.animPanelOut
+    easing.type: Easing.InCubic
+    onFinished: if (!panel.shown) panel.closeFinished()
+  }
+
+  ParallelAnimation {
+    id: pageAnim
+    property real from: 0
+
+    NumberAnimation {
+      target: panel
+      property: "pageOffset"
+      from: pageAnim.from
+      to: 0
+      duration: Style.animPanelIn
+      easing.type: Easing.OutCubic
+    }
+
+    NumberAnimation {
+      target: panel
+      property: "pageOpacity"
+      from: 0
+      to: 1
+      duration: Style.animPanelIn
+      easing.type: Easing.OutCubic
+    }
+  }
+
+  onShownChanged: {
+    if (panel.shown) {
+      exitAnim.stop()
+      enterAnim.start()
+    } else {
+      enterAnim.stop()
+      exitAnim.start()
+    }
+  }
+
+  Connections {
+    target: panel.controller
+
+    function onPageChanged() {
+      var length = panel.controller.history.length
+      if (panel.shown && panel.presence > 0) {
+        pageAnim.from = length > panel.trailLength ? Style.pageShift
+          : (length < panel.trailLength ? -Style.pageShift : 0)
+        pageAnim.restart()
+      }
+      panel.trailLength = length
+    }
+  }
+
+  Component.onCompleted: enterAnim.start()
+
   HyprlandFocusGrab {
-    active: panel.visible
+    active: panel.shown
     windows: panel.anchorWin ? [panel, panel.anchorWin] : [panel]
     onCleared: if (panel.controller) panel.controller.close()
   }
@@ -99,6 +178,10 @@ PanelWindow {
     color: Theme.alpha(Theme.bg, Style.surfaceAlpha)
     border.color: Theme.alpha(Theme.fg, 0.15)
     border.width: 1
+    opacity: panel.presence
+    transform: Translate {
+      y: (1 - panel.presence) * (panel.atTop ? -Style.panelShift : Style.panelShift)
+    }
 
     Item {
       id: header
@@ -154,6 +237,10 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         elide: Text.ElideRight
         text: pageLoader.item ? pageLoader.item.title : ""
+        opacity: panel.pageOpacity
+        transform: Translate {
+          x: panel.pageOffset
+        }
         color: Theme.fgBright
         font.family: Style.fontFamily
         font.pixelSize: Style.fontTitle
@@ -207,6 +294,10 @@ PanelWindow {
         x: Style.panelPadding
         y: Style.panelPadding
         width: body.width - Style.panelPadding * 2
+        opacity: panel.pageOpacity
+        transform: Translate {
+          x: panel.pageOffset
+        }
 
         readonly property string pageUrl: {
           PluginRegistry.revision

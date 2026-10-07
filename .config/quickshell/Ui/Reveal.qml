@@ -17,14 +17,54 @@ Item {
   // Out of its parent column while closed, or the column keeps the spacing
   // around a row of no height.
   visible: height > 0.5
-  height: reveal.open ? body.implicitHeight : 0
-  opacity: reveal.open ? 1 : 0
+  height: body.implicitHeight
+  opacity: 1
 
-  Behavior on opacity {
-    NumberAnimation {
-      duration: Style.animFast
+  property bool ready: false
+  Component.onCompleted: reveal.ready = true
+
+  states: State {
+    name: "closed"
+    when: !reveal.open
+
+    PropertyChanges {
+      reveal.height: 0
+      reveal.opacity: 0
     }
   }
+
+  transitions: [
+    Transition {
+      to: "closed"
+      enabled: reveal.ready
+
+      SequentialAnimation {
+        NumberAnimation {
+          property: "opacity"
+          duration: Style.animFast
+          easing.type: Easing.InCubic
+        }
+        PropertyAction {
+          property: "height"
+        }
+      }
+    },
+    Transition {
+      from: "closed"
+      enabled: reveal.ready
+
+      SequentialAnimation {
+        PropertyAction {
+          property: "height"
+        }
+        NumberAnimation {
+          property: "opacity"
+          duration: Style.animFast
+          easing.type: Easing.OutCubic
+        }
+      }
+    }
+  ]
 
   Column {
     id: body
