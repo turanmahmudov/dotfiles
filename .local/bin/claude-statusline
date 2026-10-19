@@ -1,0 +1,230 @@
+#!/bin/sh
+# shellcheck disable=SC1003,SC2088,SC2154
+set -eu
+
+input=$(cat)
+
+eval "$(printf '%s' "$input" | jq -r '
+  def n: if . == null then "" else tostring end;
+  {
+    session: (.session_id | n),
+    model: (.model.display_name | n),
+    effort: (.effort.level | n),
+    fast: (.fast_mode | n),
+    cwd: ((.workspace.current_dir // .cwd) | n),
+    agent: (.agent.name | n),
+    worktree: ((.worktree.name // .workspace.git_worktree) | n),
+    pr_number: (.pr.number | n),
+    pr_url: (.pr.url | n),
+    pr_state: (.pr.review_state | n),
+    pr_kind: (.pr.kind | n),
+    added: (.cost.total_lines_added | n),
+    removed: (.cost.total_lines_removed | n),
+    duration_ms: (.cost.total_duration_ms | n),
+    ctx_pct: (.context_window.used_percentage | n),
+    week_pct: (.rate_limits.seven_day.used_percentage | n)
+  } | to_entries[] | "\(.key)=\(.value | @sh)"
+')"
+
+esc=$(printf '\033')
+reset="${esc}[0m"
+bold="${esc}[1m"
+dim="${esc}[2m"
+red="${esc}[31m"
+green="${esc}[32m"
+yellow="${esc}[33m"
+blue="${esc}[34m"
+magenta="${esc}[35m"
+cyan="${esc}[36m"
+
+icon_model=$(printf '\363\260\247\221 ')
+icon_agent=$(printf '\363\260\232\251 ')
+icon_folder=$(printf '\357\201\274 ')
+icon_worktree=$(printf '\357\206\273 ')
+icon_branch=$(printf '\356\202\240 ')
+icon_pr=$(printf '\357\220\207 ')
+icon_diff=$(printf '\357\221\200 ')
+icon_context=$(printf '\363\260\215\233 ')
+icon_week=$(printf '\363\260\203\255 ')
+icon_time=$(printf '\357\200\227 ')
+
+width=${COLUMNS:-120}
+width=$((width - 4))
+now=$(date +%s)
+
+link() {
+	printf '%s]8;;%s%s\\%s%s]8;;%s\\' "$esc" "$1" "$esc" "$2" "$esc" "$esc"
+}
+
+level_color() {
+	if [ "$1" -ge 80 ]; then
+		printf '%s' "$red"
+	elif [ "$1" -ge 50 ]; then
+		printf '%s' "$yellow"
+	else
+		printf '%s' "$green"
+	fi
+}
+
+format_span() {
+	seconds=$1
+	hours=$((seconds / 3600))
+	minutes=$((seconds % 3600 / 60))
+	if [ "$hours" -gt 0 ]; then
+		printf '%dh%02dm' "$hours" "$minutes"
+	else
+		printf '%dm' "$minutes"
+	fi
+}
+
+to_int() {
+	printf '%.0f' "${1:-0}"
+}
+
+line=""
+line_width=0
+separator="   "
+
+add() {
+	plain_width=$(printf '%s' "$1" | wc -m)
+	if [ -n "$line" ]; then
+		needed=$((line_width + ${#separator} + plain_width))
+	else
+		needed=$plain_width
+	fi
+	[ "$needed" -gt "$width" ] && return 0
+	if [ -n "$line" ]; then
+		line="$line$separator$2"
+	else
+		line=$2
+	fi
+	line_width=$needed
+}
+
+flush() {
+	[ -n "$line" ] && printf '%s%s\n' "$line" "$reset"
+	line=""
+	line_width=0
+}
+
+# Line 1: model, place, git, pull request, edits
+
+model_plain="$icon_model $model"
+model_text="$cyan$icon_model$reset $bold$model$reset"
+if [ -n "$effort" ]; then
+	model_plain="$model_plain $effort"
+	model_text="$model_text $dim$effort$reset"
+fi
+if [ "$fast" = "true" ]; then
+	model_plain="$model_plain fast"
+	model_text="$model_text ${yellow}fast$reset"
+fi
+add "$model_plain" "$model_text"
+
+if [ -n "$agent" ]; then
+	add "$icon_agent $agent" "$cyan$icon_agent $agent$reset"
+fi
+
+case $cwd in
+"$HOME") place="~" ;;
+"$HOME"/*) place="~/${cwd#"$HOME"/}" ;;
+*) place=$cwd ;;
+esac
+if [ "$(printf '%s' "$place" | wc -m)" -gt 40 ]; then
+	place=".../$(basename "$(dirname "$cwd")")/$(basename "$cwd")"
+fi
+add "$icon_folder $place" "$blue$icon_folder $(link "file://$cwd" "$place")$reset"
+
+if [ -n "$worktree" ]; then
+	add "$icon_worktree $worktree" "$green$icon_worktree $worktree$reset"
+fi
+
+cache_dir="${XDG_RUNTIME_DIR:-/tmp}/claude-statusline"
+mkdir -p "$cache_dir"
+git_cache="$cache_dir/${session:-none}.git"
+git_line=""
+if [ -f "$git_cache" ] && [ $((now - $(stat -c %Y "$git_cache"))) -lt 5 ] && [ "$(head -n 1 "$git_cache")" = "$cwd" ]; then
+	git_line=$(sed -n 2p "$git_cache")
+else
+	git_line=$(GIT_OPTIONAL_LOCKS=0 git -C "$cwd" status --porcelain=v2 --branch 2>/dev/null | awk '
+		/^# branch.head / { head = $3 }
+		/^# branch.oid / { oid = substr($3, 1, 7) }
+		/^# branch.ab / { ahead = substr($3, 2); behind = substr($4, 2) }
+		/^[12] / {
+			if (substr($2, 1, 1) != ".") staged++
+			if (substr($2, 2, 1) != ".") modified++
+		}
+		/^u / { conflicts++ }
+		/^\? / { untracked++ }
+		END {
+			if (head == "") exit
+			if (head == "(detached)") head = oid
+			printf "%s %d %d %d %d %d %d", head, ahead, behind, staged, modified, untracked, conflicts
+		}
+	') || git_line=""
+	printf '%s\n%s\n' "$cwd" "$git_line" >"$git_cache.$$"
+	mv "$git_cache.$$" "$git_cache"
+fi
+
+if [ -n "$git_line" ]; then
+	# shellcheck disable=SC2086
+	set -- $git_line
+	branch_plain="$icon_branch $1"
+	branch_text="$magenta$icon_branch $1$reset"
+	[ "$2" -gt 0 ] && branch_plain="$branch_plain ↑$2" && branch_text="$branch_text $cyan↑$2$reset"
+	[ "$3" -gt 0 ] && branch_plain="$branch_plain ↓$3" && branch_text="$branch_text $cyan↓$3$reset"
+	[ "$7" -gt 0 ] && branch_plain="$branch_plain !$7" && branch_text="$branch_text $red!$7$reset"
+	[ "$4" -gt 0 ] && branch_plain="$branch_plain +$4" && branch_text="$branch_text $green+$4$reset"
+	[ "$5" -gt 0 ] && branch_plain="$branch_plain ~$5" && branch_text="$branch_text $yellow~$5$reset"
+	[ "$6" -gt 0 ] && branch_plain="$branch_plain ?$6" && branch_text="$branch_text $dim?$6$reset"
+	add "$branch_plain" "$branch_text"
+fi
+
+if [ -n "$pr_number" ]; then
+	if [ "$pr_kind" = "mr" ]; then
+		pr_label="!$pr_number"
+	else
+		pr_label="#$pr_number"
+	fi
+	case $pr_state in
+	approved) pr_color=$green ;;
+	changes_requested) pr_color=$red ;;
+	draft) pr_color=$dim ;;
+	*) pr_color=$yellow ;;
+	esac
+	pr_state_label=$(printf '%s' "$pr_state" | tr '_' ' ')
+	pr_plain="$icon_pr $pr_label${pr_state_label:+ $pr_state_label}"
+	pr_text="$pr_color$icon_pr$reset $(link "$pr_url" "$pr_label")${pr_state_label:+ $pr_color$pr_state_label$reset}"
+	add "$pr_plain" "$pr_text"
+fi
+
+if [ "${added:-0}" -gt 0 ] || [ "${removed:-0}" -gt 0 ]; then
+	add "$icon_diff +$added -$removed" "$dim$icon_diff$reset $green+$added$reset $red-$removed$reset"
+fi
+
+flush
+
+# Line 2: context, weekly limit, time
+
+pct=$(to_int "${ctx_pct:-0}")
+color=$(level_color "$pct")
+filled=$((pct / 10))
+[ "$filled" -gt 10 ] && filled=10
+bar_on=$(printf '%*s' "$filled" '' | sed 's/ /━/g')
+bar_off=$(printf '%*s' $((10 - filled)) '' | sed 's/ /━/g')
+add "$icon_context $bar_on$bar_off $pct%" "$color$icon_context$reset $color$bar_on$reset$dim$bar_off$reset $color$pct%$reset"
+
+limit() {
+	used=$(to_int "$2")
+	color=$(level_color "$used")
+	add "$1 $used%" "$dim$1$reset $color$used%$reset"
+}
+
+[ -n "$week_pct" ] && limit "$icon_week" "$week_pct"
+
+if [ -n "$duration_ms" ]; then
+	elapsed=$(format_span $((duration_ms / 1000)))
+	add "$icon_time $elapsed" "$dim$icon_time$reset $elapsed"
+fi
+
+flush
