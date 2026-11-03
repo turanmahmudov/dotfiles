@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import qs.Commons
 import qs.Ui
 
@@ -12,10 +11,6 @@ PanelPage {
   property int viewMonth: today.getMonth()
   property date selectedDay: new Date(today.getFullYear(), today.getMonth(), today.getDate())
   readonly property var cells: computeCells(viewYear, viewMonth)
-
-  // Day key "YYYY-MM-DD" to the list of events on that day.
-  property var eventsByDay: ({})
-  property bool calendarFailed: false
 
   readonly property real cellWidth: (width - Style.spaceHair * 6) / 7
 
@@ -59,41 +54,11 @@ PanelPage {
   }
 
   function loadEvents() {
-    eventsProc.running = false
-    eventsProc.command = [Quickshell.env("HOME") + "/.local/bin/calendar-events", formatKey(cells[0].date), formatKey(cells[41].date)]
-    eventsProc.running = true
-  }
-
-  function parseEvents(text) {
-    if (text.trim().length === 0)
-      return
-    var byDay = {}
-    try {
-      var list = JSON.parse(text)
-      for (var i = 0; i < list.length; i++) {
-        for (var j = 0; j < list[i].days.length; j++) {
-          var key = list[i].days[j]
-          if (!byDay[key])
-            byDay[key] = []
-          byDay[key].push(list[i])
-        }
-      }
-    } catch (e) {
-      console.warn("clock: failed to parse calendar-events output:", e)
-    }
-    panel.eventsByDay = byDay
+    CalendarEvents.load(formatKey(cells[0].date), formatKey(cells[41].date))
   }
 
   onCellsChanged: loadEvents()
   Component.onCompleted: loadEvents()
-
-  Process {
-    id: eventsProc
-    stdout: StdioCollector {
-      onStreamFinished: panel.parseEvents(text)
-    }
-    onExited: (code) => panel.calendarFailed = code !== 0
-  }
 
   Item {
     width: parent.width
@@ -172,7 +137,7 @@ PanelPage {
           readonly property var info: modelData
           readonly property bool isToday: panel.isSameDay(info.date, panel.today)
           readonly property bool isSelected: panel.isSameDay(info.date, panel.selectedDay)
-          readonly property var dayEvents: panel.eventsByDay[panel.formatKey(info.date)] || []
+          readonly property var dayEvents: CalendarEvents.eventsByDay[panel.formatKey(info.date)] || []
           width: panel.cellWidth
           height: 32
 
@@ -233,26 +198,40 @@ PanelPage {
   }
 
   Text {
-    readonly property var dayEvents: panel.eventsByDay[panel.formatKey(panel.selectedDay)] || []
+    readonly property var dayEvents: CalendarEvents.eventsByDay[panel.formatKey(panel.selectedDay)] || []
     width: parent.width
     visible: dayEvents.length === 0
-    text: panel.calendarFailed ? "Calendar service unavailable" : "No events"
+    text: CalendarEvents.failed ? "Calendar service unavailable" : "No events"
     color: Theme.fgDim
     font.family: Style.fontFamily
     font.pixelSize: Style.fontBody
   }
 
   Repeater {
-    model: panel.eventsByDay[panel.formatKey(panel.selectedDay)] || []
+    model: CalendarEvents.eventsByDay[panel.formatKey(panel.selectedDay)] || []
 
     Rectangle {
+      id: eventRow
       required property var modelData
       width: parent.width
       height: Style.rowHeight
       radius: Style.radiusSmall
-      color: Theme.alpha(Theme.fg, Style.cardAlpha)
+      color: Theme.alpha(Theme.fg, eventArea.containsMouse ? Style.cardHoverAlpha : Style.cardAlpha)
       border.width: 1
       border.color: Theme.alpha(Theme.fg, Style.cardBorderAlpha)
+
+      Behavior on color {
+        ColorAnimation {
+          duration: Style.animFast
+        }
+      }
+
+      MouseArea {
+        id: eventArea
+        anchors.fill: parent
+        hoverEnabled: true
+        acceptedButtons: Qt.NoButton
+      }
 
       Rectangle {
         x: 8
@@ -276,14 +255,28 @@ PanelPage {
 
       Text {
         anchors.left: timeLabel.right
-        anchors.right: parent.right
-        anchors.rightMargin: 10
+        anchors.right: meetButton.visible ? meetButton.left : parent.right
+        anchors.rightMargin: meetButton.visible ? 4 : 10
         anchors.verticalCenter: parent.verticalCenter
         elide: Text.ElideRight
         text: modelData.title
         color: Theme.fg
         font.family: Style.fontFamily
         font.pixelSize: Style.fontBody
+      }
+
+      IconButton {
+        id: meetButton
+        anchors.right: parent.right
+        anchors.rightMargin: 4
+        anchors.verticalCenter: parent.verticalCenter
+        height: parent.height - 8
+        visible: modelData.meetUrl.length > 0 && (eventArea.containsMouse || hovered)
+        name: "video"
+        iconSize: Style.iconSmall
+        color: hovered ? Theme.accent : Theme.fg
+        tooltipText: "Join Google Meet"
+        onClicked: Quickshell.execDetached(["xdg-open", eventRow.modelData.meetUrl])
       }
     }
   }
