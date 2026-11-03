@@ -77,19 +77,6 @@ if ! command -v slack >/dev/null 2>&1; then
     rm -f "$slack_deb"
 fi
 
-# Obsidian
-if ! command -v obsidian >/dev/null 2>&1; then
-    obsidian_tag=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
-        https://github.com/obsidianmd/obsidian-releases/releases/latest \
-        | sed -nE 's#.*/tag/v?([0-9.]+)$#\1#p')
-    obsidian_deb=$(mktemp --suffix=.deb)
-    curl -fsSL -o "$obsidian_deb" \
-        "https://github.com/obsidianmd/obsidian-releases/releases/download/v${obsidian_tag}/obsidian_${obsidian_tag}_amd64.deb"
-    chmod 644 "$obsidian_deb"
-    sudo apt-get install -y "$obsidian_deb"
-    rm -f "$obsidian_deb"
-fi
-
 # GitHub Desktop
 if ! command -v github-desktop >/dev/null 2>&1; then
     ghd_ver=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
@@ -106,6 +93,7 @@ fi
 # Snap packages
 sudo snap install nvim --classic
 sudo snap install code --classic
+sudo snap install obsidian --classic
 sudo snap install spotify
 sudo snap install bitwarden
 sudo snap install bw
