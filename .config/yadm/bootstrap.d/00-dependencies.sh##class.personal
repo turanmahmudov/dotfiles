@@ -11,6 +11,13 @@ if ! grep -q "avengemedia/danklinux/ubuntu" /etc/apt/sources.list /etc/apt/sourc
     sudo add-apt-repository -y ppa:avengemedia/danklinux
 fi
 
+# GitHub Desktop Plus repository
+if ! grep -q "apt.desktop-plus.org" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+    curl -fsSL https://gpg.desktop-plus.org/public.key | sudo gpg --dearmor -o /usr/share/keyrings/desktop-plus.gpg
+    echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/desktop-plus.gpg] https://apt.desktop-plus.org/ stable main" \
+        | sudo tee /etc/apt/sources.list.d/desktop-plus.list >/dev/null
+fi
+
 sudo apt-get update -qq
 
 # Deb packages
@@ -38,7 +45,8 @@ sudo apt-get install -y \
     docker.io docker-buildx docker-compose \
     slurp grim wf-recorder \
     wl-clipboard cliphist \
-    syncthing
+    syncthing \
+    desktop-plus
 
 # Snap packages
 sudo snap install nvim --classic

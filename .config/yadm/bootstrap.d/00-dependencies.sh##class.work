@@ -32,6 +32,13 @@ if ! grep -q "avengemedia/danklinux/ubuntu" /etc/apt/sources.list /etc/apt/sourc
     sudo add-apt-repository -y ppa:avengemedia/danklinux
 fi
 
+# GitHub Desktop Plus repository
+if ! grep -q "apt.desktop-plus.org" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+    curl -fsSL https://gpg.desktop-plus.org/public.key | sudo gpg --dearmor -o /usr/share/keyrings/desktop-plus.gpg
+    echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/desktop-plus.gpg] https://apt.desktop-plus.org/ stable main" \
+        | sudo tee /etc/apt/sources.list.d/desktop-plus.list >/dev/null
+fi
+
 sudo apt-get update -qq
 
 # Deb packages
@@ -63,7 +70,8 @@ sudo apt-get install -y \
     wl-clipboard cliphist \
     syncthing \
     openconnect \
-    firefox
+    firefox \
+    desktop-plus
 
 # Slack
 if ! command -v slack >/dev/null 2>&1; then
@@ -75,19 +83,6 @@ if ! command -v slack >/dev/null 2>&1; then
     chmod 644 "$slack_deb" # mktemp gives 0600; the _apt user must be able to read it
     sudo apt-get install -y "$slack_deb"
     rm -f "$slack_deb"
-fi
-
-# GitHub Desktop
-if ! command -v github-desktop >/dev/null 2>&1; then
-    ghd_ver=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
-        https://github.com/shiftkey/desktop/releases/latest \
-        | sed -nE 's#.*/tag/release-(.+)$#\1#p')
-    ghd_deb=$(mktemp --suffix=.deb)
-    curl -fsSL -o "$ghd_deb" \
-        "https://github.com/shiftkey/desktop/releases/download/release-${ghd_ver}/GitHubDesktop-linux-amd64-${ghd_ver}.deb"
-    chmod 644 "$ghd_deb"
-    sudo apt-get install -y "$ghd_deb"
-    rm -f "$ghd_deb"
 fi
 
 # Snap packages
