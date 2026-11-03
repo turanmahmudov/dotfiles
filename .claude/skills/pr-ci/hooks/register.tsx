@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { PrCheck, PrSource, TrackedPr } from '../types'
-import { GROUPS, ICONS, PR_FIELDS, buildFailureText, buildLogArgv, describePrChanges, findPrUrl, parsePrUrls, parsePrView, resolvePrBucket } from '../core/github'
+import { GROUPS, ICONS, PR_FIELDS, buildFailureText, buildLogArgv, describePrChanges, findPrUrl, findPrUrls, isPrOpen, parsePrUrls, parsePrView, resolvePrBucket } from '../core/github'
 
 const PANE = 'pr-ci'
 const REFRESH_MS = 60_000
@@ -14,6 +14,7 @@ let isRefreshing = false
 
 export const register: Register = (on, options) => {
   const repoPrAuthor = String(options.repoPrAuthor ?? '@me')
+  const openCommand = String(options.openCommand ?? 'xdg-open')
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
@@ -42,8 +43,7 @@ export const register: Register = (on, options) => {
     const ran = await next(e)
     if (!/\bgh\s+pr\s+create\b/.test(e.command) || ran.deny !== undefined) return ran
 
-    const url = findPrUrl(ran.text ?? JSON.stringify(ran.result ?? ''))
-    if (url !== undefined) await trackPr($, url, 'session')
+    for (const url of findPrUrls(ran.text ?? JSON.stringify(ran.result ?? ''))) await trackPr($, url, 'session')
 
     return ran
   })
@@ -66,10 +66,16 @@ export const register: Register = (on, options) => {
               {members.length === 0 && <Text dimColor>None</Text>}
               {members.map(pr => (
                 <Box key={pr.url} flexDirection="column">
-                  <Text bold wrap="truncate-end">
-                    {ICONS[resolvePrBucket(pr)]} {pr.repo.split('/')[1]}#{pr.number} {pr.title}
-                  </Text>
-                  {pr.checks.map(check => {
+                  <Button
+                    key={`open-${group.source}-${pr.url}`}
+                    plain
+                    label={`${isPrOpen(pr) ? ICONS[resolvePrBucket(pr)] : ' '} ${pr.repo.split('/')[1]}#${pr.number}${isPrOpen(pr) ? '' : ` (${pr.state.toLowerCase()})`} ${pr.title}`.slice(0, width + 2)}
+                    onPress={async () => {
+                      const opened = await $.process.run([openCommand, pr.url], { timeoutMs: 10_000 }).catch(() => undefined)
+                      if (opened === undefined || opened.exitCode !== 0) $.ui.toast(`Could not open ${pr.url}`)
+                    }}
+                  />
+                  {isPrOpen(pr) && pr.checks.map(check => {
                     const failedIndex = failedChecks.findIndex(failed => failed.pr === pr && failed.check === check)
                     if (failedIndex === -1 || failedIndex >= HOTKEYS.length) {
                       return (
@@ -107,7 +113,9 @@ async function refresh($: EngineInterface, repoPrAuthor: string): Promise<void> 
   isRefreshing = true
   try {
     await syncRepoPrs($, repoPrAuthor)
-    for (const pr of await read($, prs)) await refreshPr($, pr.url, pr.source)
+    for (const pr of await read($, prs)) {
+      if (isPrOpen(pr)) await refreshPr($, pr.url, pr.source)
+    }
   } finally {
     isRefreshing = false
   }
@@ -142,7 +150,7 @@ async function refreshPr($: EngineInterface, url: string, source: PrSource): Pro
   const fresh = parsePrView(view.stdout, before?.source === 'session' ? 'session' : source)
   for (const notice of describePrChanges(before, fresh)) $.ui.toast(notice.text, notice.timeoutMs === undefined ? undefined : { timeoutMs: notice.timeoutMs })
 
-  if (fresh.state !== 'OPEN') {
+  if (!isPrOpen(fresh) && fresh.source !== 'session') {
     await update($, prs, list => list.filter(pr => pr.url !== url))
 
     return

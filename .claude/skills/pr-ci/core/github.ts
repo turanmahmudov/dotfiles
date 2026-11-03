@@ -20,6 +20,10 @@ export function findPrUrl(text: string): string | undefined {
   return text.match(PR_URL)?.[0]
 }
 
+export function findPrUrls(text: string): string[] {
+  return [...new Set([...text.matchAll(new RegExp(PR_URL, 'g'))].map(match => match[0]))]
+}
+
 export function findActionsJob(link: string): { repo: string; jobId: string } | undefined {
   const match = link.match(ACTIONS_JOB)
 
@@ -88,6 +92,10 @@ export const LOG_LINES = 150
 export const ICONS: Record<PrCheckBucket | 'none', string> = { pass: '✓', fail: '✗', pending: '…', skip: '-', none: ' ' }
 
 export type PrNotice = { text: string; timeoutMs?: number }
+
+export function isPrOpen(pr: TrackedPr): boolean {
+  return pr.state === 'OPEN'
+}
 
 export function buildPrLabel(pr: TrackedPr): string {
   return `${pr.repo.split('/')[1]}#${pr.number}`
